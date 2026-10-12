@@ -16,6 +16,16 @@ export type Market = {
 
 export type KnownMarket = { code: string; name: string; endpoint: string; panel: string };
 
+/** Market kodidan chiroyli nom (akkauntda market bo'lmasa ham ko'rsatish uchun). */
+export const MARKET_NAME: Record<string, string> = {
+  shoxmarket: 'ShoxMarket',
+  amiram: 'Amiram',
+};
+
+export function marketName(code: string, fallback = '') {
+  return MARKET_NAME[code] || fallback || code;
+}
+
 /** Market paneli — admin oqim (stream) kalitini shu yerdan oladi. */
 export const MARKET_PANEL: Record<string, string> = {
   shoxmarket: 'https://admin.shoxmarket.uz',

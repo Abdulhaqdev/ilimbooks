@@ -84,6 +84,8 @@ export type Preset = {
   template: Template;
   tags: string[];
   offerId?: string;
+  /** Market lead uchun to'laydigan summa (so'm) */
+  payout?: string;
   content: LandingContent;
 };
 

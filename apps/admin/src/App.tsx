@@ -29,6 +29,7 @@ export default function App() {
             <Route path="landings" element={<Landings />} />
             <Route path="landings/:id" element={<LandingEdit />} />
             <Route path="templates" element={<Templates />} />
+            <Route path="templates/:market" element={<Templates />} />
             <Route path="orders" element={<Orders />} />
             <Route path="markets" element={<Markets />} />
             <Route path="reklama" element={<Reklama />} />

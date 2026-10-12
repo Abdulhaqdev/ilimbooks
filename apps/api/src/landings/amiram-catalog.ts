@@ -15,6 +15,8 @@ import type { Preset } from './landing-presets';
 export type AmiramItem = {
   offerId: number;
   slug: string;
+  /** Market lead uchun to'laydigan summa (so'm) */
+  payout: string;
   /** Admin panelda ko'rinadigan ichki nom (market katalogidagi nom) */
   name: string;
   category: string;
@@ -34,6 +36,7 @@ const DELIVERY: Faq = {
 type Input = {
   id: number;
   slug: string;
+  payout: string;
   name: string;
   category: string;
   template: Template;
@@ -93,6 +96,7 @@ function item(i: Input): AmiramItem {
   return {
     offerId: i.id,
     slug: i.slug,
+    payout: i.payout,
     name: i.name,
     category: i.category,
     template: i.template,
@@ -104,6 +108,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 2,
     slug: '3in1-aqlli-stol-chirogi',
+    payout: '30 000',
     name: 'Aqilli Stol Chirog\'i',
     category: 'Elektronika',
     template: 'minimal',
@@ -127,6 +132,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 3,
     slug: 'skelet-erkaklar-soati',
+    payout: '30 000',
     name: 'Richard Mile Soati',
     category: 'Soatlar',
     template: 'premium',
@@ -149,6 +155,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 4,
     slug: 'yulduzli-osmon-lampa',
+    payout: '32 000',
     name: 'Yulduzli Osmon Lampa',
     category: 'Yangi yil uchun',
     template: 'kids',
@@ -171,6 +178,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 5,
     slug: '7in1-soch-turmaklagich',
+    payout: '35 000',
     name: 'Dyson Fen',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -194,6 +202,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 6,
     slug: 'oltin-klassik-soat',
+    payout: '30 000',
     name: 'Cartier',
     category: 'Soatlar',
     template: 'premium',
@@ -216,6 +225,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 8,
     slug: '4-talik-atir-nabori',
+    payout: '30 000',
     name: '4 Talik nabor Atir',
     category: 'Sovg\'alar',
     template: 'bundle',
@@ -243,6 +253,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 9,
     slug: 'zamonaviy-metall-soat',
+    payout: '35 000',
     name: 'Tissot Prx 1853',
     category: 'Soatlar',
     template: 'premium',
@@ -264,6 +275,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 10,
     slug: 'oyoq-plastiri-detoks',
+    payout: '25 000',
     name: 'Food Patch',
     category: 'Salomatlik va Go\'zallik',
     template: 'minimal',
@@ -285,6 +297,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 11,
     slug: 'klassik-biznes-soat',
+    payout: '30 000',
     name: 'Rolex Sky Dwellir',
     category: 'Soatlar',
     template: 'premium',
@@ -306,6 +319,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 12,
     slug: 'sport-klassik-soat',
+    payout: '40 000',
     name: 'Patek Philippe Noutilis',
     category: 'Soatlar',
     template: 'premium',
@@ -327,6 +341,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 13,
     slug: 'rangli-kosmetik-linza',
+    payout: '40 000',
     name: 'LInza',
     category: 'Salomatlik va Go\'zallik',
     template: 'minimal',
@@ -349,6 +364,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 15,
     slug: 'avto-ultrasonik-atir',
+    payout: '30 000',
     name: 'UltiraSonic Aroma',
     category: 'Sovg\'alar',
     template: 'minimal',
@@ -370,6 +386,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 17,
     slug: 'ayollar-nafis-soat',
+    payout: '30 000',
     name: 'Lumora soati',
     category: 'Soatlar',
     template: 'premium',
@@ -391,6 +408,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 18,
     slug: '4-talik-pankeyk-tova',
+    payout: '35 000',
     name: '4 Talik Pankeyk va Tuxum uchun Tova',
     category: 'Uy Ryzg\'or Buyumlari',
     template: 'minimal',
@@ -413,6 +431,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 21,
     slug: 'erkaklar-parfum-rave',
+    payout: '30 000',
     name: 'Now Eau de Parfum- RAVE',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -434,6 +453,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 22,
     slug: 'dark-spot-glow-serum',
+    payout: '30 000',
     name: 'AXIS-Y Dark Spot Correcting Glow Serum',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -463,6 +483,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 23,
     slug: '3d-devor-soati',
+    payout: '30 000',
     name: '3D Devor soati',
     category: 'Soatlar',
     template: 'minimal',
@@ -486,6 +507,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 24,
     slug: 'mukoshafatul-qulub',
+    payout: '30 000',
     name: 'Mukoshafatul Qulub: Abu Homid G\'azzoliy',
     category: 'Kitoblar',
     template: 'full',
@@ -507,6 +529,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 26,
     slug: 'ayollar-gul-soat',
+    payout: '30 000',
     name: 'Van Clef Ayollar Soati',
     category: 'Soatlar',
     template: 'premium',
@@ -528,6 +551,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 30,
     slug: 'suv-effektli-led-chiroq',
+    payout: '30 000',
     name: 'Suv Effektli Led Chiroq',
     category: 'Elektronika',
     template: 'minimal',
@@ -549,6 +573,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 38,
     slug: 'feromonli-erkaklar-atiri',
+    payout: '30 000',
     name: 'Pheromone For Men Atiri',
     category: 'Sovg\'alar',
     template: 'premium',
@@ -570,6 +595,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 39,
     slug: 'ayollar-orchid-atir',
+    payout: '30 000',
     name: 'Zara Orchid Atiri',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -591,6 +617,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 40,
     slug: 'centella-parvarish-nabori',
+    payout: '30 000',
     name: 'Centella Nabor',
     category: 'Salomatlik va Go\'zallik',
     template: 'bundle',
@@ -620,6 +647,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 42,
     slug: 'ashaab-unisex-atir',
+    payout: '30 000',
     name: 'Lattafa Ashaab Eau de Parfum',
     category: 'Sovg\'alar',
     template: 'premium',
@@ -641,6 +669,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 43,
     slug: 'feromonli-ayollar-atiri-5ml',
+    payout: '30 000',
     name: 'Foelllie Feramon Atir- 5 ML',
     category: 'Intim tovarlar',
     template: 'minimal',
@@ -662,6 +691,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 45,
     slug: 'elegant-metall-soat',
+    payout: '30 000',
     name: 'Omega soati 2',
     category: 'Soatlar',
     template: 'premium',
@@ -683,6 +713,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 47,
     slug: 'ayollar-romantik-atir',
+    payout: '30 000',
     name: 'Miss Dior Atiri',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -704,6 +735,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 48,
     slug: 'megamare-dengiz-atir',
+    payout: '30 000',
     name: 'Orto Parisi Megamare',
     category: 'Sovg\'alar',
     template: 'premium',
@@ -725,6 +757,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 49,
     slug: 'yogochsimon-unisex-atir',
+    payout: '30 000',
     name: 'SANTAL--33',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -746,6 +779,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 50,
     slug: 'kollagen-soch-maskasi',
+    payout: '25 000',
     name: 'Karseell Maca Power',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -773,6 +807,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 52,
     slug: 'feromonli-ayollar-atiri',
+    payout: '30 000',
     name: 'Pheromone Women Ayolar uchun',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -794,6 +829,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 53,
     slug: '5-talik-mini-atir-nabori',
+    payout: '35 000',
     name: 'Louis Vuitton 5 xil Flakonda',
     category: 'Salomatlik va Go\'zallik',
     template: 'bundle',
@@ -820,6 +856,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 54,
     slug: 'hibiscus-unisex-atir',
+    payout: '30 000',
     name: 'Hibiscus Mahajad Atiri',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -841,6 +878,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 55,
     slug: 'mashina-quritish-sochiq',
+    payout: '45 000',
     name: 'Dry Monster Microfebra Moshina Sochig’i!',
     category: 'BFQ',
     template: 'flash',
@@ -864,6 +902,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 56,
     slug: '14-talik-atir-kolleksiya',
+    payout: '30 000',
     name: 'Louis Vuitton 14 xil Atir',
     category: 'Salomatlik va Go\'zallik',
     template: 'bundle',
@@ -890,6 +929,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 57,
     slug: 'terlashga-qarshi-vosita',
+    payout: '30 000',
     name: 'No Sweat No Stress _Tirlashga Qarshi Vosita',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -918,6 +958,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 58,
     slug: 'smart-hula-hoop',
+    payout: '30 000',
     name: 'Ayollar uchun qorin yog\'ini yuqotish uchun obrich',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -947,6 +988,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 59,
     slug: 'soqol-serum-5-minoxidil',
+    payout: '30 000',
     name: 'Beard Growth Soqol ustiradigan vosita',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -974,6 +1016,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 60,
     slug: 'oqartiruvchi-krem-nozik',
+    payout: '30 000',
     name: 'Whitening Cream Oqartiruvchi Krem',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1002,6 +1045,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 62,
     slug: 'nozik-teri-kremi-125g',
+    payout: '30 000',
     name: 'Sudocrem tiri uchun',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1031,6 +1075,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 63,
     slug: 'avto-yuvish-toplami-10',
+    payout: '35 000',
     name: 'Avtomobil Yuvish To\'plam',
     category: 'Sovg\'alar',
     template: 'bundle',
@@ -1059,6 +1104,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 64,
     slug: 'minoxidil-15-soqol',
+    payout: '30 000',
     name: 'Minoxidil 15% Soqol Ustirish Uchun',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1086,6 +1132,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 65,
     slug: 'premium-imperial-atir',
+    payout: '35 000',
     name: 'The Imperial Parfum',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -1107,6 +1154,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 66,
     slug: 'ayollar-parvarish-geli',
+    payout: '30 000',
     name: 'Розовая женщина Gel qin toraytiradigan',
     category: 'Salomatlik va Go\'zallik',
     template: 'minimal',
@@ -1129,6 +1177,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 67,
     slug: 'bolalar-suvli-kovrik',
+    payout: '30 000',
     name: 'Bolalar Uchun Yumshoq Suvli Kovrik',
     category: 'Uy Ryzg\'or Buyumlari',
     template: 'kids',
@@ -1152,6 +1201,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 68,
     slug: 'talk-pudra-constanta',
+    payout: '35 000',
     name: 'Constanta Talk',
     category: 'Salomatlik va Go\'zallik',
     template: 'minimal',
@@ -1174,6 +1224,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 69,
     slug: 'timberwind-atir',
+    payout: '30 000',
     name: 'Salvador by Mijod',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -1195,6 +1246,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 70,
     slug: 'relief-tinchlantiruvchi-krem',
+    payout: '35 000',
     name: 'Dr. Althea 345 Relief Cream',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1223,6 +1275,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 71,
     slug: 'elektr-chivin-oldirgich',
+    payout: '30 000',
     name: 'GECKO LTD-618 eliktr chivin o\'ldirgichi',
     category: 'Elektronika',
     template: 'problem',
@@ -1250,6 +1303,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 72,
     slug: 'premium-atir-1plus1',
+    payout: '30 000',
     name: 'Louis Vuitton Imaginatoin 1+1 45ml',
     category: 'Salomatlik va Go\'zallik',
     template: 'bundle',
@@ -1276,6 +1330,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 73,
     slug: 'atir-plus-5-mini-sovga',
+    payout: '40 000',
     name: 'Pheromone For Men + Luis Vuiton',
     category: 'Sovg\'alar',
     template: 'bundle',
@@ -1302,6 +1357,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 74,
     slug: 'feromonli-atir-100ml',
+    payout: '35 000',
     name: 'Pheromone For Men 100ml Orginal',
     category: 'Sovg\'alar',
     template: 'premium',
@@ -1323,6 +1379,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 75,
     slug: '3-kitob-nabori-islomiy',
+    payout: '40 000',
     name: 'Tengsiz Namuna+Dunyo Jannati+So\'ngi Nafas Nabor 3 ta kitob',
     category: 'Kitoblar',
     template: 'bundle',
@@ -1349,6 +1406,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 77,
     slug: 'sozma-soz-quron-tarjima',
+    payout: '40 000',
     name: 'Sozma So\'z Quroni Karim manolar tarjimasi',
     category: 'Kitoblar',
     template: 'premium',
@@ -1371,6 +1429,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 78,
     slug: 'tajvidli-mushaf-katta',
+    payout: '150 000',
     name: 'TAJVIDLI MUS’HAF — QUR’ON KITOBI',
     category: 'Kitoblar',
     template: 'premium',
@@ -1394,6 +1453,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 79,
     slug: 'nurdan-damla-5-kitob',
+    payout: '70 000',
     name: 'Nurdan Damla',
     category: 'Kitoblar',
     template: 'bundle',
@@ -1422,6 +1482,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 80,
     slug: 'kastor-moyi-kiprik',
+    payout: '30 000',
     name: 'Castor Oil',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1448,6 +1509,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 81,
     slug: 'mukhallat-body-lotion',
+    payout: '30 000',
     name: '✨ MUKHALLAT PERFUMED BODY LOTION ✨',
     category: 'Salomatlik va Go\'zallik',
     template: 'minimal',
@@ -1469,6 +1531,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 82,
     slug: 'saffron-milk-krem',
+    payout: '30 000',
     name: 'Fem Saffron& milk',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1496,6 +1559,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 83,
     slug: 'ash-shamoil-muhammadiya',
+    payout: '30 000',
     name: 'Ash-Shamoil al-Muhammadiya',
     category: 'Kitoblar',
     template: 'full',
@@ -1517,6 +1581,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 86,
     slug: 'keng-rizq-yoli',
+    payout: '30 000',
     name: 'Keng Rizq Yo\'li',
     category: 'Kitoblar',
     template: 'full',
@@ -1538,6 +1603,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 87,
     slug: 'collagen-shampon',
+    payout: '30 000',
     name: 'COLLAGEN SHAMPON',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1564,6 +1630,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 89,
     slug: 'vitamin-c-booster',
+    payout: '30 000',
     name: 'Arencia Vitamin C Booster Shot',
     category: 'Salomatlik va Go\'zallik',
     template: 'problem',
@@ -1590,6 +1657,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 90,
     slug: 'erkaklar-dubai-atir',
+    payout: '35 000',
     name: 'MORVEY For Men Dubai Atiri 50ml',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -1611,6 +1679,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 91,
     slug: 'ayollar-dubai-atir',
+    payout: '35 000',
     name: 'MORVEN Women Dubai Atiri 50ml',
     category: 'Salomatlik va Go\'zallik',
     template: 'premium',
@@ -1632,6 +1701,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 93,
     slug: 'rivojlantiruvchi-bolalar-kovrigi',
+    payout: '40 000',
     name: 'RIVOJLANTIRUVCHI BOLALAR KOVRIGI',
     category: 'Sovg\'alar',
     template: 'kids',
@@ -1654,6 +1724,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 94,
     slug: 'bolalar-uycha-palatka',
+    payout: '40 000',
     name: 'Bolalar Uchun Uycha Palatka',
     category: 'Sovg\'alar',
     template: 'kids',
@@ -1677,6 +1748,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 95,
     slug: 'qurondan-qissalar-bolalar',
+    payout: '35 000',
     name: 'Qurondan Qissalar',
     category: 'Sovg\'alar',
     template: 'kids',
@@ -1699,6 +1771,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 96,
     slug: 'qalblar-ozigi-toplam',
+    payout: '40 000',
     name: 'Qutul Qulub Qalblar Ozig’i',
     category: 'Kitoblar',
     template: 'bundle',
@@ -1727,6 +1800,7 @@ export const AMIRAM_CATALOG: AmiramItem[] = [
   item({
     id: 97,
     slug: 'bolalar-6-talik-toplam',
+    payout: '40 000',
     name: 'Bolalar uchun 6 talik Toplam nabor',
     category: 'Kitoblar',
     template: 'bundle',
@@ -1770,6 +1844,7 @@ export function amiramPreset(c: AmiramItem): Preset {
     template: c.template,
     tags: [`Amiram #${c.offerId}`, c.category],
     offerId: String(c.offerId),
+    payout: c.payout,
     content: c.content,
   };
 }
