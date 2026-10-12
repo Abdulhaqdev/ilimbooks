@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { IconRefresh } from '../components/icons';
+import { useToast } from '../components/ui';
 import { accountLabel, getAccount } from '../lib/account';
 import { api, formatNum } from '../lib/api';
 
@@ -36,14 +37,16 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 export default function Orders() {
   const account = getAccount();
   const qc = useQueryClient();
+  const toast = useToast();
   const [status, setStatus] = useState('');
   const retry = useMutation({
     mutationFn: (id: string) => api<{ ok: boolean; message?: string }>(`/api/admin/orders/${id}/retry`, { method: 'POST' }),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ['orders'] });
-      if (!r.ok) alert(r.message || 'Uzatilmadi');
+      if (r.ok) toast.ok('Buyurtma marketga uzatildi');
+      else toast.err(r.message || 'Uzatilmadi');
     },
-    onError: (e) => alert(e instanceof Error ? e.message : 'Xatolik'),
+    onError: (e) => toast.err(e instanceof Error ? e.message : 'Xatolik'),
   });
   const q = useQuery({
     queryKey: ['orders', status],

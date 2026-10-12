@@ -14,6 +14,7 @@ import { IconClock, IconPointer, IconSend, IconTrendUp } from '../components/ico
 import { useSort } from '../components/useSort';
 import { accountLabel, getAccount } from '../lib/account';
 import { api, formatNum } from '../lib/api';
+import { Toggle } from '../components/ui';
 import { chartColors, useTheme } from '../lib/theme';
 import { useTime } from '../lib/time';
 
@@ -84,14 +85,9 @@ export default function Dashboard() {
           <p className="a-sub">Instagram trafigi va konversiya — real vaqtda</p>
         </div>
         <div className="a-row" style={{ margin: 0 }}>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={auto}
-              disabled={t.isPastDay}
-              onChange={(e) => setAuto(e.target.checked)}
-            />
-            30s da yangilash
+          <label className="a-switch-inline">
+            <Toggle checked={auto} disabled={t.isPastDay} onChange={setAuto} />
+            <span>30s da yangilash</span>
           </label>
         </div>
       </div>

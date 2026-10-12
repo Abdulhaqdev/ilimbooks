@@ -12,6 +12,8 @@ import {
   IconX,
 } from '../components/icons';
 import { PhonePreview } from '../components/PhonePreview';
+import { Select } from '../components/Select';
+import { Toggle, useToast } from '../components/ui';
 import { api } from '../lib/api';
 import { marketPanel, type Market } from '../lib/markets';
 import {
@@ -249,13 +251,13 @@ function ReviewsEditor({ value, onChange }: { value: Review[]; onChange: (v: Rev
             <div className="a-grid-3">
               <input className="a-in" value={r.name} placeholder="Ism" onChange={(e) => upd(i, { name: e.target.value })} />
               <input className="a-in" value={r.city} placeholder="Shahar" onChange={(e) => upd(i, { city: e.target.value })} />
-              <select className="a-in" value={r.rating} onChange={(e) => upd(i, { rating: Number(e.target.value) })}>
-                {[5, 4, 3, 2, 1].map((n) => (
-                  <option key={n} value={n}>
-                    {'★'.repeat(n)}
-                  </option>
-                ))}
-              </select>
+              <Select
+                ariaLabel="Reyting"
+                block
+                value={String(r.rating)}
+                onChange={(v) => upd(i, { rating: Number(v) })}
+                options={[5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: '★'.repeat(n) }))}
+              />
             </div>
             <textarea className="a-in" rows={2} value={r.text} placeholder="Mijoz fikri" onChange={(e) => upd(i, { text: e.target.value })} />
           </div>
@@ -365,7 +367,7 @@ export default function LandingEdit() {
   });
   const [draft, setDraft] = useState<Landing | null>(null);
   const [tab, setTab] = useState<Tab>('main');
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const toast = useToast();
   useEffect(() => {
     if (q.data) setDraft(q.data);
   }, [q.data]);
@@ -411,10 +413,9 @@ export default function LandingEdit() {
       qc.setQueryData(['landing', id], saved);
       qc.invalidateQueries({ queryKey: ['landings'] });
       setDraft(saved);
-      setMsg({ ok: true, text: 'Saqlandi' });
-      setTimeout(() => setMsg(null), 2200);
+      toast.ok('Saqlandi');
     },
-    onError: (e) => setMsg({ ok: false, text: e instanceof Error ? e.message : 'Xatolik' }),
+    onError: (e) => toast.err(e instanceof Error ? e.message : 'Xatolik'),
   });
 
   if (q.isLoading || !draft) {
@@ -465,11 +466,7 @@ export default function LandingEdit() {
           <span className={draft.active ? 'a-pill ok' : 'a-pill bad'}>
             {draft.active ? 'Faol' : 'O‘chiq'}
           </span>
-          {msg ? (
-            <span className={msg.ok ? 'a-save-msg ok' : 'a-save-msg bad'}>{msg.text}</span>
-          ) : dirty ? (
-            <span className="a-save-msg">Saqlanmagan o‘zgarishlar</span>
-          ) : null}
+          {dirty ? <span className="a-save-msg">Saqlanmagan o‘zgarishlar</span> : null}
           <button className="a-btn" type="button" disabled={!dirty} onClick={() => setDraft(q.data!)}>
             Bekor qilish
           </button>
@@ -534,16 +531,12 @@ export default function LandingEdit() {
                       ))}
                     </div>
                   </Field>
-                  <label className="a-switch-row">
-                    <span>
-                      <strong>Landing faol</strong>
-                      <small>O‘chiq landing saytda “Sahifa topilmadi” ko‘rsatadi</small>
-                    </span>
-                    <span className="a-toggle">
-                      <input type="checkbox" checked={draft.active} onChange={(e) => set('active', e.target.checked)} />
-                      <span />
-                    </span>
-                  </label>
+                  <Toggle
+                    checked={draft.active}
+                    onChange={(v) => set('active', v)}
+                    label="Landing faol"
+                    hint="O‘chiq landing saytda “Sahifa topilmadi” ko‘rsatadi"
+                  />
                   <Field label="Brend nomi" hint="Sarlavha va footer’da ko‘rinadi">
                     {text('brand')}
                   </Field>
@@ -813,19 +806,20 @@ export default function LandingEdit() {
                     />
                   </Field>
                   <Field label="Market" hint="Buyurtma qaysi CPA tizimiga uzatiladi">
-                    <select
-                      className="a-in"
+                    <Select
+                      ariaLabel="Market"
+                      block
                       value={draft.marketId ?? ''}
-                      onChange={(e) => set('marketId', e.target.value || null)}
-                    >
-                      <option value="">— standart market —</option>
-                      {markets.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.name}
-                          {m.hasApiKey ? '' : ' (kalit yo‘q)'}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(v) => set('marketId', v || null)}
+                      options={[
+                        { value: '', label: 'Standart market', hint: 'Akkauntning birinchi faol marketi' },
+                        ...markets.map((m) => ({
+                          value: m.id,
+                          label: m.name,
+                          hint: m.hasApiKey ? m.endpoint : 'API kaliti kiritilmagan',
+                        })),
+                      ]}
+                    />
                   </Field>
                   <div className="a-grid-2">
                     <Field label="Oqim (stream kaliti)" hint="Market panelida offer uchun yaratiladi. Bo‘sh — market standarti">

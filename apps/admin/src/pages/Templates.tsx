@@ -12,6 +12,7 @@ import {
   IconX,
 } from '../components/icons';
 import { PhonePreview } from '../components/PhonePreview';
+import { Select } from '../components/Select';
 import { accountLabel, getAccount } from '../lib/account';
 import { api } from '../lib/api';
 import { hasFeature, imgSrc, landingUrl, templateLabel, type Feature, type Preset } from '../lib/landings';
@@ -345,29 +346,30 @@ function MarketCatalog({ code, presets, market }: { code: string; presets: Prese
             </button>
           ) : null}
         </div>
-        <select className="a-in" value={cat} onChange={(e) => setCat(e.target.value)}>
-          <option value="">Barcha kategoriyalar</option>
-          {cats.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <select className="a-in" value={tpl} onChange={(e) => setTpl(e.target.value)}>
-          <option value="">Barcha dizaynlar</option>
-          {tpls.map((t) => (
-            <option key={t} value={t}>
-              {templateLabel(t)}
-            </option>
-          ))}
-        </select>
-        <select className="a-in" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-          {SORTS.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        <Select
+          ariaLabel="Kategoriya"
+          value={cat}
+          onChange={setCat}
+          options={[
+            { value: '', label: 'Barcha kategoriyalar' },
+            ...cats.map((c) => ({ value: c, label: c })),
+          ]}
+        />
+        <Select
+          ariaLabel="Dizayn"
+          value={tpl}
+          onChange={setTpl}
+          options={[
+            { value: '', label: 'Barcha dizaynlar' },
+            ...tpls.map((t) => ({ value: t, label: templateLabel(t) })),
+          ]}
+        />
+        <Select
+          ariaLabel="Saralash"
+          value={sort}
+          onChange={(v) => setSort(v as Sort)}
+          options={SORTS.map((x) => ({ value: x.id, label: x.label }))}
+        />
         {filtered ? (
           <button className="a-btn sm" type="button" onClick={reset}>
             Tozalash

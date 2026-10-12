@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { IconExternal, IconEye, IconEyeOff, IconOrders, IconPlug, IconPlus } from '../components/icons';
+import { Toggle, useConfirm, useToast } from '../components/ui';
 import { accountLabel, getAccount } from '../lib/account';
 import { api } from '../lib/api';
 import { marketPanel, type KnownMarket, type Market } from '../lib/markets';
@@ -48,6 +49,8 @@ function Status({ check }: { check: Check }) {
 
 function MarketCard({ m }: { m: Market }) {
   const qc = useQueryClient();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [form, setForm] = useState({
     name: m.name,
     endpoint: m.endpoint,
@@ -58,7 +61,6 @@ function MarketCard({ m }: { m: Market }) {
   });
   const [check, setCheck] = useState<Check>(null);
   const [checking, setChecking] = useState(false);
-  const [msg, setMsg] = useState('');
 
   const dirty =
     form.name !== m.name ||
@@ -73,19 +75,36 @@ function MarketCard({ m }: { m: Market }) {
       api<Market>(`/api/admin/markets/${m.id}`, { method: 'PATCH', body: JSON.stringify(form) }),
     onSuccess: () => {
       setForm((f) => ({ ...f, apiKey: '' }));
-      setMsg('Saqlandi');
-      setTimeout(() => setMsg(''), 2000);
+      toast.ok(`${m.name} sozlamalari saqlandi`);
       qc.invalidateQueries({ queryKey: ['markets'] });
       qc.invalidateQueries({ queryKey: ['landings'] });
     },
-    onError: (e) => setMsg(e instanceof Error ? e.message : 'Xatolik'),
+    onError: (e) => toast.err(e instanceof Error ? e.message : 'Xatolik'),
   });
 
   const del = useMutation({
     mutationFn: () => api(`/api/admin/markets/${m.id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['markets'] }),
-    onError: (e) => setMsg(e instanceof Error ? e.message : 'Xatolik'),
+    onSuccess: () => {
+      toast.ok(`${m.name} o‘chirildi`);
+      qc.invalidateQueries({ queryKey: ['markets'] });
+    },
+    onError: (e) => toast.err(e instanceof Error ? e.message : 'Xatolik'),
   });
+
+  async function askDelete() {
+    const ok = await confirm({
+      title: 'Market o‘chirilsinmi?',
+      text: (
+        <>
+          <b>{m.name}</b> o‘chiriladi. API kaliti va standart oqim ham yo‘qoladi — buyurtmalar
+          uzatilmay qoladi.
+        </>
+      ),
+      confirmText: 'O‘chirish',
+      danger: true,
+    });
+    if (ok) del.mutate();
+  }
 
   async function runCheck() {
     setChecking(true);
@@ -191,26 +210,18 @@ function MarketCard({ m }: { m: Market }) {
           <button className="a-btn" type="button" disabled={checking || !m.hasApiKey} onClick={runCheck}>
             {checking ? 'Tekshirilmoqda…' : 'Sinov buyurtma yuborish'}
           </button>
-          <label className="a-row" style={{ margin: 0, gap: 6, fontSize: 13 }}>
-            <input
-              type="checkbox"
+          <label className="a-switch-inline">
+            <Toggle
               checked={form.active}
-              onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))}
+              onChange={(v) => setForm((f) => ({ ...f, active: v }))}
             />
             <span>Faol</span>
           </label>
           {!m.landings ? (
-            <button
-              className="a-btn danger"
-              type="button"
-              onClick={() => {
-                if (confirm(`"${m.name}" marketi o‘chirilsinmi?`)) del.mutate();
-              }}
-            >
+            <button className="a-btn danger" type="button" onClick={askDelete}>
               O‘chirish
             </button>
           ) : null}
-          {msg ? <span className="a-save-msg ok">{msg}</span> : null}
         </div>
         <Status check={check} />
         <div className="a-hint">
@@ -225,6 +236,7 @@ function MarketCard({ m }: { m: Market }) {
 
 function AddMarket({ known }: { known: KnownMarket[] }) {
   const qc = useQueryClient();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -245,6 +257,7 @@ function AddMarket({ known }: { known: KnownMarket[] }) {
       setEndpoint('');
       setApiKey('');
       setErr('');
+      toast.ok(`${name} qo‘shildi`);
       qc.invalidateQueries({ queryKey: ['markets'] });
     },
     onError: (e) => setErr(e instanceof Error ? e.message : 'Xatolik'),

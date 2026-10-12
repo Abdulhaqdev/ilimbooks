@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { accountLabel, cacheAccounts, cachedAccounts, getAccount, setAccount, type AccountRow } from '../lib/account';
 import { api } from '../lib/api';
+import { Select } from './Select';
 
 /**
  * Akkaunt almashtirgich. Tanlov localStorage'da — barcha admin so'rovlari ?acc= bilan ketadi,
@@ -24,20 +25,14 @@ export default function AccountSwitcher() {
   }
 
   return (
-    <label className="a-acc">
+    <div className="a-acc">
       <span className="a-acc-lbl">Akkaunt</span>
-      <select
-        className="a-acc-sel"
+      <Select
+        ariaLabel={`Akkaunt: ${accountLabel(current)}`}
         value={rows.some((r) => r.code === current) ? current : rows[0].code}
-        onChange={(e) => setAccount(e.target.value)}
-        title={accountLabel(current)}
-      >
-        {rows.map((r) => (
-          <option key={r.code} value={r.code}>
-            {r.name}
-          </option>
-        ))}
-      </select>
-    </label>
+        options={rows.map((r) => ({ value: r.code, label: r.name }))}
+        onChange={(v) => setAccount(v)}
+      />
+    </div>
   );
 }

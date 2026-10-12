@@ -1,15 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CreateLandingModal } from '../components/CreateLandingModal';
-import { IconCopy, IconEdit, IconExternal, IconPlus, IconSparkles, IconTrash } from '../components/icons';
+import { IconCopy, IconEdit, IconExternal, IconSparkles, IconTrash } from '../components/icons';
+import { Toggle, useConfirm, useToast } from '../components/ui';
+import { accountLabel, getAccount } from '../lib/account';
 import { api, formatNum } from '../lib/api';
 import { imgSrc, landingUrl, templateLabel, type Landing } from '../lib/landings';
 
 export default function Landings() {
   const qc = useQueryClient();
   const nav = useNavigate();
-  const [creating, setCreating] = useState(false);
+  const account = getAccount();
+  const confirm = useConfirm();
+  const toast = useToast();
   const q = useQuery({
     queryKey: ['landings'],
     queryFn: () => api<Landing[]>('/api/admin/landings'),
@@ -37,13 +40,32 @@ export default function Landings() {
       refresh();
       nav(`/landings/${l.id}`);
     },
+    onError: (e) => toast.err(e instanceof Error ? e.message : 'Xatolik'),
   });
 
   const remove = useMutation({
     mutationFn: (l: Landing) => api(`/api/admin/landings/${l.id}`, { method: 'DELETE' }),
-    onSuccess: refresh,
-    onError: (e) => alert(e instanceof Error ? e.message : 'Xatolik'),
+    onSuccess: (_d, l) => {
+      refresh();
+      toast.ok(`“${l.name}” o‘chirildi`);
+    },
+    onError: (e) => toast.err(e instanceof Error ? e.message : 'Xatolik'),
   });
+
+  async function askRemove(l: Landing) {
+    const ok = await confirm({
+      title: 'Landing o‘chirilsinmi?',
+      text: (
+        <>
+          <b>{l.name}</b> ({l.path}) butunlay o‘chiriladi. Bu amalni qaytarib bo‘lmaydi — reklama
+          havolalari ham ishlamay qoladi.
+        </>
+      ),
+      confirmText: 'O‘chirish',
+      danger: true,
+    });
+    if (ok) remove.mutate(l);
+  }
 
   const rows = q.data || [];
 
@@ -51,18 +73,16 @@ export default function Landings() {
     <div>
       <div className="a-row spread">
         <div>
-          <h1 className="a-h1">Landinglar</h1>
+          <h1 className="a-h1">Landinglar · {accountLabel(account)}</h1>
           <p className="a-sub" style={{ marginBottom: 0 }}>
-            Har bir landing — alohida manzil, kontent, Pixel va market oqimi.
+            Har bir landing — alohida manzil, kontent, Pixel va market oqimi. Yangisi tayyor
+            shablonlar katalogidan qo‘shiladi.
           </p>
         </div>
         <div className="a-row" style={{ margin: 0 }}>
-          <Link className="a-btn" to="/templates">
-            <IconSparkles size={16} /> Tayyor shablonlar
+          <Link className="a-btn p" to="/templates">
+            <IconSparkles size={16} /> Shablondan qo‘shish
           </Link>
-          <button className="a-btn p" type="button" onClick={() => setCreating(true)}>
-            <IconPlus size={16} /> Yangi landing
-          </button>
         </div>
       </div>
 
@@ -96,15 +116,13 @@ export default function Landings() {
                     ) : null}
                   </div>
                 </div>
-                <label className="a-toggle" title={l.active ? 'Faol — o‘chirish' : 'O‘chiq — yoqish'}>
-                  <input
-                    type="checkbox"
+                <span title={l.active ? 'Faol — o‘chirish' : 'O‘chiq — yoqish'}>
+                  <Toggle
                     checked={l.active}
                     disabled={toggle.isPending}
                     onChange={() => toggle.mutate(l)}
                   />
-                  <span />
-                </label>
+                </span>
               </div>
 
               <div className="a-lstats">
@@ -147,11 +165,7 @@ export default function Landings() {
                     className="a-icon-btn danger"
                     type="button"
                     title="O‘chirish"
-                    onClick={() => {
-                      if (confirm(`"${l.name}" landingini o‘chirasizmi? Bu amalni qaytarib bo‘lmaydi.`)) {
-                        remove.mutate(l);
-                      }
-                    }}
+                    onClick={() => askRemove(l)}
                   >
                     <IconTrash size={16} />
                   </button>
@@ -161,14 +175,13 @@ export default function Landings() {
           </div>
         ))}
 
-        <button className="a-lnew" type="button" onClick={() => setCreating(true)}>
-          <span><IconPlus size={22} /></span>
-          <strong>Yangi landing qo‘shish</strong>
-          <small>Asosiy landingdan nusxa bilan boshlanadi</small>
-        </button>
+        <Link className="a-lnew" to="/templates">
+          <span><IconSparkles size={22} /></span>
+          <strong>Shablondan landing qo‘shish</strong>
+          <small>Market katalogidan mahsulotni tanlaysiz — matn va rasm tayyor keladi</small>
+        </Link>
       </div>
 
-      {creating ? <CreateLandingModal onClose={() => setCreating(false)} /> : null}
     </div>
   );
 }

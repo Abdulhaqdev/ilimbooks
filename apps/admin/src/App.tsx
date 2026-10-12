@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Shell from './components/Shell';
+import { UiProvider } from './components/ui';
 import AnalyticsPage from './pages/Analytics';
 import Dashboard from './pages/Dashboard';
 import LandingEdit from './pages/LandingEdit';
@@ -20,6 +21,7 @@ const qc = new QueryClient({
 export default function App() {
   return (
     <ThemeProvider>
+    <UiProvider>
     <QueryClientProvider client={qc}>
       <BrowserRouter>
         <Routes>
@@ -40,6 +42,7 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
+    </UiProvider>
     </ThemeProvider>
   );
 }
