@@ -17,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { AccountsService } from '../accounts/accounts.service';
 import { AdminAuthGuard } from '../auth/admin-auth.guard';
 import { type LandingInput, LandingsService } from './landings.service';
 
@@ -41,7 +42,10 @@ type UploadFile = { mimetype: string; size: number; buffer: Buffer };
 
 @Controller('api')
 export class LandingsController {
-  constructor(private readonly landings: LandingsService) {}
+  constructor(
+    private readonly landings: LandingsService,
+    private readonly accounts: AccountsService,
+  ) {}
 
   @Get('public/landing')
   async publicLanding(@Query('path') path = '/') {
@@ -52,8 +56,8 @@ export class LandingsController {
 
   @Get('admin/landings')
   @UseGuards(AdminAuthGuard)
-  list() {
-    return this.landings.list();
+  async list(@Query('acc') acc?: string) {
+    return this.landings.list(await this.accounts.resolve(acc));
   }
 
   @Get('admin/presets')
@@ -70,8 +74,8 @@ export class LandingsController {
 
   @Post('admin/landings')
   @UseGuards(AdminAuthGuard)
-  create(@Body() body: LandingInput) {
-    return this.landings.create(body || {});
+  async create(@Body() body: LandingInput, @Query('acc') acc?: string) {
+    return this.landings.create(await this.accounts.resolve(acc), body || {});
   }
 
   @Patch('admin/landings/:id')

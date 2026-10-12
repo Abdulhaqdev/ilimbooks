@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -10,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Request, Response } from 'express';
+import { AccountsService } from '../accounts/accounts.service';
 import { AdminAuthGuard } from '../auth/admin-auth.guard';
 import { OrdersService, type OrderInput } from './orders.service';
 
@@ -17,7 +19,10 @@ const VID_COOKIE = 'ib_vid';
 
 @Controller('api')
 export class OrdersController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(
+    private readonly orders: OrdersService,
+    private readonly accounts: AccountsService,
+  ) {}
 
   /** Public — landing buyurtma formasi */
   @Post('order')
@@ -57,10 +62,22 @@ export class OrdersController {
   /** Admin — buyurtmalar ro‘yxati */
   @Get('admin/orders')
   @UseGuards(AdminAuthGuard)
-  async list(@Query('status') status?: string, @Query('limit') limit?: string) {
+  async list(
+    @Query('status') status?: string,
+    @Query('limit') limit?: string,
+    @Query('acc') acc?: string,
+  ) {
     return this.orders.list({
       status: status || undefined,
       limit: limit ? Number(limit) : undefined,
+      account: await this.accounts.resolve(acc),
     });
+  }
+
+  /** Admin — uzatilmagan buyurtmani qayta yuborish */
+  @Post('admin/orders/:id/retry')
+  @UseGuards(AdminAuthGuard)
+  retry(@Param('id') id: string) {
+    return this.orders.retry(id);
   }
 }

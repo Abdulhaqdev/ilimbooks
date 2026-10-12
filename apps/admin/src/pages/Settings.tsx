@@ -1,28 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { IconChart, IconEye, IconEyeOff, IconOrders, IconPlug } from '../components/icons';
+import { IconChart, IconEye, IconEyeOff, IconPlug } from '../components/icons';
+import { accountLabel, getAccount } from '../lib/account';
 import { api } from '../lib/api';
 
 type Values = {
-  shox_endpoint: string;
-  shox_api_key: string;
-  shox_stream: string;
-  shox_offer_id: string;
   meta_pixel: string;
   meta_capi_token: string;
 };
 
 type Check = { ok: boolean; message: string } | null;
 
-const EMPTY: Values = {
-  shox_endpoint: '',
-  shox_api_key: '',
-  shox_stream: '',
-  shox_offer_id: '',
-  meta_pixel: '',
-  meta_capi_token: '',
-};
+const EMPTY: Values = { meta_pixel: '', meta_capi_token: '' };
 
 function SecretInput({
   value,
@@ -95,6 +85,7 @@ function Status({ check }: { check: Check }) {
 }
 
 export default function Settings() {
+  const account = getAccount();
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ['settings'],
@@ -157,16 +148,14 @@ export default function Settings() {
     }
   }
 
-  const shoxOk = !!saved.shox_api_key && !!saved.shox_stream;
-
   return (
     <div>
       <div className="a-row spread">
         <div>
-          <h1 className="a-h1">Sozlamalar</h1>
+          <h1 className="a-h1">Sozlamalar · {accountLabel(account)}</h1>
           <p className="a-sub" style={{ marginBottom: 0 }}>
-            Integratsiyalar va API kalitlari. Maxfiy qiymatlar faqat serverda saqlanadi — landingga
-            chiqmaydi.
+            Meta Pixel va Conversions API — shu akkaunt uchun. Market API kalitlari{' '}
+            <Link className="a-link" to="/markets">Marketlar</Link> sahifasida.
           </p>
         </div>
         <div className="a-row" style={{ margin: 0 }}>
@@ -178,43 +167,6 @@ export default function Settings() {
       </div>
 
       <div className="a-ints">
-        <Integration
-          icon={<IconOrders size={22} />}
-          tone="green"
-          title="ShoxMarket"
-          desc="Landingdan kelgan har bir buyurtma shu API orqali ShoxMarket’ga yuboriladi"
-          connected={shoxOk}
-        >
-          <div>
-            <label className="a-lbl">API kaliti (api_key)</label>
-            <SecretInput value={form.shox_api_key} onChange={(v) => set('shox_api_key', v)} placeholder="ShoxMarket panelidan oling" />
-          </div>
-          <div className="a-grid-2">
-            <div>
-              <label className="a-lbl">Standart oqim (stream)</label>
-              <input className="a-in" value={form.shox_stream} onChange={(e) => set('shox_stream', e.target.value)} />
-            </div>
-            <div>
-              <label className="a-lbl">Standart offer_id</label>
-              <input className="a-in" value={form.shox_offer_id} onChange={(e) => set('shox_offer_id', e.target.value)} />
-            </div>
-          </div>
-          <div>
-            <label className="a-lbl">API manzili</label>
-            <input
-              className="a-in"
-              value={form.shox_endpoint}
-              placeholder="https://api.shoxmarket.uz/create"
-              onChange={(e) => set('shox_endpoint', e.target.value)}
-            />
-          </div>
-          <div className="a-note">
-            Oqim va offer_id har bir landingda alohida berilishi mumkin (
-            <Link className="a-link" to="/landings">Landinglar</Link> → Pixel va ShoxMarket). Landingda bo‘sh
-            bo‘lsa, shu yerdagi standart qiymat ishlatiladi.
-          </div>
-        </Integration>
-
         <Integration
           icon={<IconChart size={22} />}
           tone="blue"

@@ -1,16 +1,19 @@
 import { Body, Controller, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AdminAuthGuard } from '../auth/admin-auth.guard';
-import { normAccount } from '../common/account';
+import { AccountsService } from '../accounts/accounts.service';
 import { SettingsService } from './settings.service';
 
 @Controller('api/admin')
 @UseGuards(AdminAuthGuard)
 export class SettingsController {
-  constructor(private readonly settings: SettingsService) {}
+  constructor(
+    private readonly settings: SettingsService,
+    private readonly accounts: AccountsService,
+  ) {}
 
   @Get('settings')
   async adminGet(@Query('acc') acc?: string) {
-    const account = normAccount(acc);
+    const account = await this.accounts.resolve(acc);
     return { ok: true, account, values: await this.settings.getAll(account) };
   }
 
@@ -20,7 +23,7 @@ export class SettingsController {
       body && typeof body.values === 'object' && body.values
         ? (body.values as Record<string, unknown>)
         : body || {};
-    const values = await this.settings.patch(normAccount(acc), raw);
+    const values = await this.settings.patch(await this.accounts.resolve(acc), raw);
     return { ok: true, values };
   }
 

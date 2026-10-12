@@ -13,6 +13,7 @@ import {
 } from '../components/icons';
 import { PhonePreview } from '../components/PhonePreview';
 import { api } from '../lib/api';
+import { marketPanel, type Market } from '../lib/markets';
 import {
   hasFeature,
   imgSrc,
@@ -358,6 +359,10 @@ export default function LandingEdit() {
     queryKey: ['landing', id],
     queryFn: () => api<Landing>(`/api/admin/landings/${id}`),
   });
+  const mq = useQuery({
+    queryKey: ['markets'],
+    queryFn: () => api<Market[]>('/api/admin/markets'),
+  });
   const [draft, setDraft] = useState<Landing | null>(null);
   const [tab, setTab] = useState<Tab>('main');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -397,8 +402,9 @@ export default function LandingEdit() {
           active: d.active,
           content: d.content,
           pixelId: d.pixelId,
-          shoxStream: d.shoxStream,
-          shoxOfferId: d.shoxOfferId,
+          marketId: d.marketId,
+          stream: d.stream,
+          offerId: d.offerId,
         }),
       }),
     onSuccess: (saved) => {
@@ -416,6 +422,9 @@ export default function LandingEdit() {
   }
 
   const c = draft.content;
+  const markets = mq.data || [];
+  const curMarket = markets.find((m) => m.id === draft.marketId) || markets[0];
+  const panelUrl = curMarket ? marketPanel(curMarket.code) : '';
   const curTab: Tab = tabVisible(tab, draft.template) ? tab : 'main';
   const has = (f: Feature) => hasFeature(draft.template, f);
   const set = <K extends keyof Landing>(k: K, v: Landing[K]) => setDraft((d) => (d ? { ...d, [k]: v } : d));
@@ -803,26 +812,57 @@ export default function LandingEdit() {
                       onChange={(e) => set('pixelId', e.target.value)}
                     />
                   </Field>
+                  <Field label="Market" hint="Buyurtma qaysi CPA tizimiga uzatiladi">
+                    <select
+                      className="a-in"
+                      value={draft.marketId ?? ''}
+                      onChange={(e) => set('marketId', e.target.value || null)}
+                    >
+                      <option value="">— standart market —</option>
+                      {markets.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                          {m.hasApiKey ? '' : ' (kalit yo‘q)'}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
                   <div className="a-grid-2">
-                    <Field label="ShoxMarket oqimi (stream)" hint="Bo‘sh — standart oqim">
+                    <Field label="Oqim (stream kaliti)" hint="Market panelida offer uchun yaratiladi. Bo‘sh — market standarti">
                       <input
                         className="a-in"
-                        value={draft.shoxStream}
-                        onChange={(e) => set('shoxStream', e.target.value)}
+                        value={draft.stream}
+                        placeholder={curMarket?.defaultStream || 'aM4LiY1C'}
+                        onChange={(e) => set('stream', e.target.value)}
                       />
                     </Field>
-                    <Field label="ShoxMarket offer_id" hint="Bo‘sh — standart mahsulot">
+                    <Field label="offer_id (mahsulot raqami)" hint="Bo‘sh — market standarti">
                       <input
                         className="a-in"
-                        value={draft.shoxOfferId}
-                        onChange={(e) => set('shoxOfferId', e.target.value)}
+                        value={draft.offerId}
+                        placeholder={curMarket?.defaultOfferId || '1'}
+                        onChange={(e) => set('offerId', e.target.value)}
                       />
                     </Field>
                   </div>
+                  {!draft.stream && !curMarket?.defaultStream ? (
+                    <div className="a-err">
+                      Oqim kiritilmagan — buyurtma bazada saqlanadi, lekin marketga uzatilmaydi.
+                      {panelUrl ? (
+                        <>
+                          {' '}
+                          <a className="a-link" href={panelUrl} target="_blank" rel="noreferrer">
+                            {curMarket?.name} panelida
+                          </a>{' '}
+                          shu offer uchun oqim yaratib, kalitini shu yerga qo‘ying.
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div className="a-note">
-                    Har xil mahsulot yoki kampaniya uchun alohida oqim/offer bering — buyurtmalar
-                    ShoxMarket’da shunga qarab ajraladi. API kaliti{' '}
-                    <Link to="/settings" className="a-link">Sozlamalar</Link>’da.
+                    Har bir mahsulot uchun alohida oqim bering — buyurtmalar market statistikasida
+                    shunga qarab ajraladi. API kaliti{' '}
+                    <Link to="/markets" className="a-link">Marketlar</Link> sahifasida.
                   </div>
                 </>
               ) : null}

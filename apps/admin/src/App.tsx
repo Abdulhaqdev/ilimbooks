@@ -4,6 +4,7 @@ import Shell from './components/Shell';
 import AnalyticsPage from './pages/Analytics';
 import Dashboard from './pages/Dashboard';
 import LandingEdit from './pages/LandingEdit';
+import Markets from './pages/Markets';
 import Landings from './pages/Landings';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="landings/:id" element={<LandingEdit />} />
             <Route path="templates" element={<Templates />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="markets" element={<Markets />} />
             <Route path="reklama" element={<Reklama />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="settings" element={<Settings />} />

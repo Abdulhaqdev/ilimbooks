@@ -7,6 +7,8 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Landing, Prisma } from '@prisma/client';
+import { Account, DEFAULT_ACCOUNT, normAccount } from '../common/account';
+import { MarketsService } from '../markets/markets.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettingsService } from '../settings/settings.service';
 import {
@@ -32,8 +34,9 @@ export type LandingInput = {
   active?: boolean;
   content?: unknown;
   pixelId?: string;
-  shoxStream?: string;
-  shoxOfferId?: string;
+  marketId?: string | null;
+  stream?: string;
+  offerId?: string;
 };
 
 function toDto(l: Landing) {
@@ -46,8 +49,10 @@ function toDto(l: Landing) {
     active: l.active,
     content: sanitizeContent(l.content),
     pixelId: l.pixelId,
-    shoxStream: l.shoxStream,
-    shoxOfferId: l.shoxOfferId,
+    account: l.account,
+    marketId: l.marketId,
+    stream: l.stream,
+    offerId: l.offerId,
     sortOrder: l.sortOrder,
     createdAt: l.createdAt,
     updatedAt: l.updatedAt,
@@ -61,6 +66,7 @@ export class LandingsService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
+    private readonly markets: MarketsService,
   ) {}
 
   /** Birinchi ishga tushishda eski (kodga yozilgan) 2 ta landingni bazaga ko'chiradi. */
@@ -105,13 +111,15 @@ export class LandingsService implements OnModuleInit {
     this.log.log('Standart landinglar yaratildi (/ va /2)');
   }
 
-  async list() {
+  async list(account: Account = DEFAULT_ACCOUNT) {
+    const acc = normAccount(account);
     const rows = await this.prisma.landing.findMany({
+      where: { account: acc },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
     const since = new Date(Date.now() - 7 * 86_400_000);
     const paths = rows.map((l) => slugToPath(l.slug));
-    const [sessions, leads] = await Promise.all([
+    const [sessions, leads, markets] = await Promise.all([
       this.prisma.session.groupBy({
         by: ['page'],
         where: { page: { in: paths }, firstSeen: { gte: since } },
@@ -122,13 +130,28 @@ export class LandingsService implements OnModuleInit {
         where: { page: { in: paths }, createdAt: { gte: since } },
         _count: { _all: true },
       }),
+      this.prisma.market.findMany({ where: { account: acc } }),
     ]);
     const sMap = new Map(sessions.map((r) => [r.page, r._count._all]));
     const lMap = new Map(leads.map((r) => [r.page, r._count._all]));
+    const mMap = new Map(markets.map((m) => [m.id, m]));
+    const fallback = markets.find((m) => m.active);
     return rows.map((l) => {
       const path = slugToPath(l.slug);
+      const market = (l.marketId && mMap.get(l.marketId)) || fallback || null;
+      const stream = l.stream || market?.defaultStream || '';
+      const offerId = l.offerId || market?.defaultOfferId || '';
       return {
         ...toDto(l),
+        marketName: market?.name || '',
+        marketCode: market?.code || '',
+        /** Oqim yoki offer yo'q — lead marketga uzatilmaydi (bazada saqlanadi) */
+        ready: !!(market?.apiKey && stream && offerId),
+        missing: [
+          !market?.apiKey ? 'api_key' : '',
+          !stream ? 'oqim' : '',
+          !offerId ? 'offer_id' : '',
+        ].filter(Boolean),
         stats7d: { clicks: sMap.get(path) || 0, leads: lMap.get(path) || 0 },
       };
     });
@@ -154,16 +177,17 @@ export class LandingsService implements OnModuleInit {
       path: d.path,
       template: d.template,
       content: d.content,
-      pixelId: d.pixelId || (await this.settings.getAll()).meta_pixel,
+      pixelId: d.pixelId || (await this.settings.getAll(l.account)).meta_pixel,
     };
   }
 
-  /** Buyurtma kelgan sahifaga mos landing (ShoxMarket oqimi/offer uchun). */
+  /** Buyurtma kelgan sahifaga mos landing (market oqimi/offer uchun). */
   findByPath(path: string | undefined) {
     return this.prisma.landing.findUnique({ where: { slug: pathToSlug(path || '/') } });
   }
 
-  async create(input: LandingInput) {
+  async create(account: Account, input: LandingInput) {
+    const acc = normAccount(account);
     const name = (input.name || '').trim().slice(0, 120);
     if (!name) throw new BadRequestException('Landing nomini kiriting');
     const slug = await this.checkSlug(input.slug);
@@ -173,21 +197,30 @@ export class LandingsService implements OnModuleInit {
     let base: LandingContent = DEFAULT_CONTENT;
     if (preset) base = preset.content;
     else {
-      const first = await this.prisma.landing.findFirst({ orderBy: { sortOrder: 'asc' } });
+      const first = await this.prisma.landing.findFirst({
+        where: { account: acc },
+        orderBy: { sortOrder: 'asc' },
+      });
       if (first) base = sanitizeContent(first.content);
     }
     const content = sanitizeContent(input.content, base);
-    const last = await this.prisma.landing.aggregate({ _max: { sortOrder: true } });
+    const last = await this.prisma.landing.aggregate({
+      where: { account: acc },
+      _max: { sortOrder: true },
+    });
+    const marketId = await this.checkMarket(acc, input.marketId, preset?.marketCode);
     const l = await this.prisma.landing.create({
       data: {
         name,
         slug,
         template,
+        account: acc,
+        marketId,
         active: input.active ?? true,
         content: content as unknown as Prisma.InputJsonValue,
         pixelId: this.clean(input.pixelId, 200),
-        shoxStream: this.clean(input.shoxStream, 80),
-        shoxOfferId: this.clean(input.shoxOfferId ?? preset?.offerId, 40),
+        stream: this.clean(input.stream, 80),
+        offerId: this.clean(input.offerId ?? preset?.offerId, 40),
         sortOrder: (last._max.sortOrder ?? -1) + 1,
       },
     });
@@ -213,8 +246,11 @@ export class LandingsService implements OnModuleInit {
       ) as unknown as Prisma.InputJsonValue;
     }
     if (input.pixelId !== undefined) data.pixelId = this.clean(input.pixelId, 200);
-    if (input.shoxStream !== undefined) data.shoxStream = this.clean(input.shoxStream, 80);
-    if (input.shoxOfferId !== undefined) data.shoxOfferId = this.clean(input.shoxOfferId, 40);
+    if (input.marketId !== undefined) {
+      data.marketId = await this.checkMarket(cur.account, input.marketId);
+    }
+    if (input.stream !== undefined) data.stream = this.clean(input.stream, 80);
+    if (input.offerId !== undefined) data.offerId = this.clean(input.offerId, 40);
     const l = await this.prisma.landing.update({ where: { id }, data });
     return toDto(l);
   }
@@ -225,15 +261,16 @@ export class LandingsService implements OnModuleInit {
     for (let i = 2; await this.prisma.landing.findUnique({ where: { slug } }); i++) {
       slug = `${cur.slug || 'landing'}-nusxa-${i}`;
     }
-    return this.create({
+    return this.create(cur.account, {
       name: `${cur.name} (nusxa)`,
       slug,
       template: cur.template,
       active: false,
       content: cur.content,
       pixelId: cur.pixelId,
-      shoxStream: cur.shoxStream,
-      shoxOfferId: cur.shoxOfferId,
+      marketId: cur.marketId,
+      stream: cur.stream,
+      offerId: cur.offerId,
     });
   }
 
@@ -255,6 +292,32 @@ export class LandingsService implements OnModuleInit {
     const v = String(t || 'full') as Template;
     if (!TEMPLATES.includes(v)) throw new BadRequestException('Noma’lum shablon');
     return v;
+  }
+
+  /** Market shu akkauntga tegishli bo'lishi shart; bo'sh bo'lsa standart market. */
+  private async checkMarket(
+    account: Account,
+    marketId?: string | null,
+    preferCode?: string,
+  ): Promise<string | null> {
+    const acc = normAccount(account);
+    if (marketId) {
+      const m = await this.prisma.market.findUnique({ where: { id: marketId } });
+      if (!m || m.account !== acc) throw new BadRequestException('Market bu akkauntga tegishli emas');
+      return m.id;
+    }
+    if (preferCode) {
+      const m = await this.prisma.market.findUnique({
+        where: { account_code: { account: acc, code: preferCode } },
+      });
+      if (m) return m.id;
+      // Shablon boshqa market katalogidan — offer_id mos kelmaydi, jim qolib ketmaymiz
+      throw new BadRequestException(
+        `Bu shablon "${preferCode}" marketiga tegishli, lekin bu akkauntda unday market yo‘q. Marketlar sahifasida qo‘shing yoki tegishli akkauntga o‘ting.`,
+      );
+    }
+    const fallback = await this.markets.resolve(acc, null);
+    return fallback?.id ?? null;
   }
 
   private async checkSlug(raw: unknown, selfId?: string) {

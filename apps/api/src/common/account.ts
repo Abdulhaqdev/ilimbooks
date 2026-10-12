@@ -1,13 +1,19 @@
-/** Bitta akkaunt: nazir. Sozlama kalitlari bare (prefiksisiz) nomlanadi. */
-export type Account = 'nazir';
+/** Akkaunt kodi — Account.code (masalan "nazir", "amiram"). */
+export type Account = string;
 
-export const ACCOUNTS: Account[] = ['nazir'];
+export const DEFAULT_ACCOUNT = 'nazir';
 
-export function normAccount(_v?: string | null): Account {
-  return 'nazir';
+/** Kiruvchi ?acc= qiymatini xavfsiz kodga aylantiradi (bazada borligi alohida tekshiriladi). */
+export function normAccount(v?: string | null): Account {
+  const code = String(v ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '')
+    .slice(0, 40);
+  return code || DEFAULT_ACCOUNT;
 }
 
-/** Sozlama kaliti — bitta akkaunt bo‘lgani uchun bare kalit. */
-export function scopedKey(_account: Account, key: string): string {
-  return key;
+/** Sozlama kaliti akkaunt bo'yicha ajratiladi: "nazir:meta_pixel". */
+export function scopedKey(account: Account, key: string): string {
+  return `${normAccount(account)}:${key}`;
 }

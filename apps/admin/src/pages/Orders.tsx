@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { IconRefresh } from '../components/icons';
+import { accountLabel, getAccount } from '../lib/account';
 import { api, formatNum } from '../lib/api';
 
 type Lead = {
@@ -11,6 +13,9 @@ type Lead = {
   shoxId?: string | null;
   shoxMessage?: string | null;
   offerId?: string | null;
+  stream?: string | null;
+  marketName?: string | null;
+  page?: string | null;
   utmSource?: string | null;
   utmContent?: string | null;
   createdAt: string;
@@ -29,7 +34,17 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export default function Orders() {
+  const account = getAccount();
+  const qc = useQueryClient();
   const [status, setStatus] = useState('');
+  const retry = useMutation({
+    mutationFn: (id: string) => api<{ ok: boolean; message?: string }>(`/api/admin/orders/${id}/retry`, { method: 'POST' }),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ['orders'] });
+      if (!r.ok) alert(r.message || 'Uzatilmadi');
+    },
+    onError: (e) => alert(e instanceof Error ? e.message : 'Xatolik'),
+  });
   const q = useQuery({
     queryKey: ['orders', status],
     queryFn: () =>
@@ -41,8 +56,11 @@ export default function Orders() {
 
   return (
     <div>
-      <h1 className="a-h1">Buyurtmalar</h1>
-      <p className="a-sub">Landingdan kelgan buyurtmalar (ism + telefon) va ShoxMarket API holati.</p>
+      <h1 className="a-h1">Buyurtmalar · {accountLabel(account)}</h1>
+      <p className="a-sub">
+        Landingdan kelgan buyurtmalar (ism + telefon) va market API holati. Uzatilmagan buyurtma
+        bazada saqlanadi — oqimni tuzatib, qayta yuborish mumkin.
+      </p>
 
       <div className="a-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <div className="a-card">
@@ -50,7 +68,7 @@ export default function Orders() {
           <div className="a-card-v">{formatNum(st?.total || 0)}</div>
         </div>
         <div className="a-card">
-          <div className="a-card-k">ShoxMarketga yuborildi</div>
+          <div className="a-card-k">Marketga yuborildi</div>
           <div className="a-card-v" style={{ color: 'var(--green)' }}>{formatNum(st?.sent || 0)}</div>
         </div>
         <div className="a-card">
@@ -87,8 +105,9 @@ export default function Orders() {
                 <th>Ism</th>
                 <th>Telefon</th>
                 <th>Manba / kreativ</th>
+                <th>Market / mahsulot</th>
                 <th>Holat</th>
-                <th>ShoxMarket javobi</th>
+                <th>Market javobi</th>
               </tr>
             </thead>
             <tbody>
@@ -111,16 +130,33 @@ export default function Orders() {
                     <td style={{ fontSize: 12.5 }}>
                       {(r.utmSource || '—')}{r.utmContent ? ` / ${r.utmContent}` : ''}
                     </td>
+                    <td style={{ fontSize: 12.5 }}>
+                      {r.marketName || '—'}
+                      {r.offerId ? <span className="muted"> · #{r.offerId}</span> : null}
+                    </td>
                     <td><span className={`a-pill ${s.cls}`}>{s.label}</span></td>
                     <td style={{ fontSize: 12.5 }} className="muted">
-                      {r.shoxId ? `#${r.shoxId} · ` : ''}{r.shoxMessage || '—'}
+                      <div className="a-row" style={{ margin: 0, gap: 6 }}>
+                        <span>{r.shoxId ? `#${r.shoxId} · ` : ''}{r.shoxMessage || '—'}</span>
+                        {r.status === 'failed' ? (
+                          <button
+                            className="a-icon-btn"
+                            type="button"
+                            title="Qayta yuborish"
+                            disabled={retry.isPending}
+                            onClick={() => retry.mutate(r.id)}
+                          >
+                            <IconRefresh size={14} />
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );
               })}
               {!q.data?.rows.length && !q.isLoading ? (
                 <tr>
-                  <td colSpan={6} className="muted">Hali buyurtma yo‘q</td>
+                  <td colSpan={7} className="muted">Hali buyurtma yo‘q</td>
                 </tr>
               ) : null}
             </tbody>

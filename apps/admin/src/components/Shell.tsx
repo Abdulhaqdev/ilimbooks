@@ -13,10 +13,12 @@ import {
   IconMenu,
   IconMoon,
   IconOrders,
+  IconPlug,
   IconSettings,
   IconSparkles,
   IconSun,
 } from './icons';
+import AccountSwitcher from './AccountSwitcher';
 import { TimeBar } from './TimeBar';
 
 const LINKS = [
@@ -24,6 +26,7 @@ const LINKS = [
   { to: '/landings', label: 'Landinglar', icon: <IconLayout /> },
   { to: '/templates', label: 'Shablonlar', icon: <IconSparkles /> },
   { to: '/orders', label: 'Buyurtmalar', icon: <IconOrders /> },
+  { to: '/markets', label: 'Marketlar', icon: <IconPlug /> },
   { to: '/reklama', label: 'Reklama', icon: <IconMegaphone /> },
   { to: '/analytics', label: 'Analitika', icon: <IconChart /> },
   { to: '/settings', label: 'Sozlamalar', icon: <IconSettings /> },
@@ -101,7 +104,8 @@ export default function Shell() {
               <IconMenu />
             </button>
             <div className="a-crumb">{current}</div>
-            {pathname.startsWith('/templates') ? null : <TimeBar />}
+            <AccountSwitcher />
+            {pathname.startsWith('/templates') || pathname.startsWith('/markets') ? null : <TimeBar />}
           </header>
           <main className="a-main">
             <Outlet />

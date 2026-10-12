@@ -78,6 +78,8 @@ export type Preset = {
   product: string;
   category: string;
   source: string;
+  /** Qaysi market katalogidan (Market.code) */
+  marketCode?: string;
   sourceUrl: string;
   template: Template;
   tags: string[];
@@ -94,9 +96,20 @@ export type Landing = {
   active: boolean;
   content: LandingContent;
   pixelId: string;
-  shoxStream: string;
-  shoxOfferId: string;
+  account: string;
+  marketId: string | null;
+  /** Market oqimi (stream kaliti) — bo'sh bo'lsa market standarti */
+  stream: string;
+  /** Market mahsulot raqami (offer_id) */
+  offerId: string;
   updatedAt: string;
+  /** Ro'yxatda keladigan qo'shimcha maydonlar */
+  marketName?: string;
+  marketCode?: string;
+  /** api_key + oqim + offer to'liq — lead marketga uzatiladi */
+  ready?: boolean;
+  /** Nima yetishmaydi: ['api_key','oqim','offer_id'] */
+  missing?: string[];
   stats7d?: { clicks: number; leads: number };
 };
 

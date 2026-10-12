@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UAParser } from 'ua-parser-js';
-import { normAccount } from '../common/account';
+import { DEFAULT_ACCOUNT, normAccount } from '../common/account';
+import { LandingsService } from '../landings/landings.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 type InEvent = {
@@ -59,7 +60,10 @@ function classifyOs(ua: string): string {
 
 @Injectable()
 export class EventsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly landings: LandingsService,
+  ) {}
 
   async ingest(payload: { sid?: string; events?: InEvent[]; meta?: InMeta }) {
     const sid = clip(payload.sid, 64);
@@ -70,8 +74,10 @@ export class EventsService {
     const meta = payload.meta || {};
     const ua = clip(meta.ua, 300) || '';
     const rawPage = clip(meta.page, 120) || '/';
-    const account = normAccount(meta.account);
     const page = normPage(rawPage);
+    // Akkaunt sahifaga mos landingdan olinadi (brauzer yuborgan qiymatga ishonmaymiz)
+    const landing = await this.landings.findByPath(page);
+    const account = landing ? normAccount(landing.account) : DEFAULT_ACCOUNT;
     const now = new Date();
 
     const events = payload.events.slice(0, 50).filter((e) => e?.type);

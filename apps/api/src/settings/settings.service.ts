@@ -1,13 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Account, scopedKey } from '../common/account';
+import { Account, DEFAULT_ACCOUNT, scopedKey } from '../common/account';
 import { PrismaService } from '../prisma/prisma.service';
 
-/** Integratsiya sozlamalari — hammasi maxfiy, faqat serverda ishlatiladi. */
+/** Akkaunt darajasidagi sozlamalar. Market kalitlari (api_key/stream/offer) Market jadvalida. */
 export const SETTING_KEYS = [
-  'shox_endpoint',
-  'shox_api_key',
-  'shox_stream',
-  'shox_offer_id',
   // landingda o'z Pixel ID'si bo'lmasa ishlatiladigan standart pixel
   'meta_pixel',
   'meta_capi_token',
@@ -26,7 +22,7 @@ export function parsePixelIds(raw: string) {
 export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAll(account: Account = 'nazir'): Promise<Record<SettingKey, string>> {
+  async getAll(account: Account = DEFAULT_ACCOUNT): Promise<Record<SettingKey, string>> {
     const rows = await this.prisma.setting.findMany({
       where: { key: { in: SETTING_KEYS.map((k) => scopedKey(account, k)) } },
     });

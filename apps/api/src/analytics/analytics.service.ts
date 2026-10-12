@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Account } from '../common/account';
+import { Account, DEFAULT_ACCOUNT, normAccount } from '../common/account';
 import { LandingsService } from '../landings/landings.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -7,7 +7,18 @@ export type RangeKey = '24h' | '3d' | '7d' | '30d';
 
 type PageRef = { path: string; name: string; template: string; slug: string };
 
-const TEMPLATE_LABEL: Record<string, string> = { full: "To'liq sahifa", compact: 'Bitta ekran' };
+const TEMPLATE_LABEL: Record<string, string> = {
+  full: "To'liq sahifa",
+  compact: 'Bitta ekran',
+  story: 'Story / Reels',
+  flash: 'Mega aksiya',
+  problem: 'Muammo → Yechim',
+  reviews: 'Sharhlar',
+  premium: 'Premium',
+  kids: 'Bolalar',
+  bundle: "To'plam",
+  minimal: "Minimal do'kon",
+};
 
 function buildPageStats(sessions: { page: string; converted: boolean }[], pages: PageRef[]) {
   const map = new Map<string, { sessions: number; clicks: number }>();
@@ -93,8 +104,8 @@ export class AnalyticsService {
     private readonly landings: LandingsService,
   ) {}
 
-  private async pageRefs(): Promise<PageRef[]> {
-    return (await this.landings.list()).map((l) => ({
+  private async pageRefs(account: Account): Promise<PageRef[]> {
+    return (await this.landings.list(account)).map((l) => ({
       path: l.path,
       name: l.name,
       template: l.template,
@@ -102,7 +113,7 @@ export class AnalyticsService {
     }));
   }
 
-  async dashboard(win: TimeWindow, account: Account = 'nazir') {
+  async dashboard(win: TimeWindow, account: Account = DEFAULT_ACCOUNT) {
     const since = win.since;
     const until = win.until;
     const onlineSince = new Date(Date.now() - 5 * 60_000);
@@ -127,7 +138,7 @@ export class AnalyticsService {
           where: { createdAt: { gte: since, lt: until }, session: { account } },
         }),
         this.prisma.lead.count({
-          where: { createdAt: { gte: since, lt: until } },
+          where: { createdAt: { gte: since, lt: until }, account: normAccount(account) },
         }),
       ]);
 
@@ -161,7 +172,7 @@ export class AnalyticsService {
       hours.push({ t: hourLabelTashkent(t), sessions: cur.s, conv: cur.c });
     }
 
-    const pageStats = buildPageStats(sessions, await this.pageRefs());
+    const pageStats = buildPageStats(sessions, await this.pageRefs(account));
 
     return {
       range: win.range,
@@ -181,7 +192,7 @@ export class AnalyticsService {
     };
   }
 
-  async analytics(win: TimeWindow, account: Account = 'nazir') {
+  async analytics(win: TimeWindow, account: Account = DEFAULT_ACCOUNT) {
     const { since, until } = win;
     const sessions = await this.prisma.session.findMany({
       where: { firstSeen: { gte: since, lt: until }, account },
@@ -292,7 +303,7 @@ export class AnalyticsService {
     return {
       range: win.range,
       day: win.day,
-      pages: buildPageStats(sessions, await this.pageRefs()),
+      pages: buildPageStats(sessions, await this.pageRefs(account)),
       creatives,
       buttons,
       devices: countBy('device'),

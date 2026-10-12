@@ -23,10 +23,10 @@ export class MetaCapiService {
     private readonly landings: LandingsService,
   ) {}
 
-  /** Token: admin → Sozlamalar (yoki .env META_CAPI_ACCESS_TOKEN). Pixel: landing → standart → .env. */
+  /** Token: admin → Sozlamalar (yoki .env META_CAPI_ACCESS_TOKEN). Pixel: landing → akkaunt standarti → .env. */
   private async config(page: string) {
-    const s = await this.settings.getAll();
     const landing = await this.landings.findByPath(page);
+    const s = await this.settings.getAll(landing?.account);
     const token = s.meta_capi_token || process.env.META_CAPI_ACCESS_TOKEN?.trim() || '';
     const pixelId =
       parsePixelIds(landing?.pixelId || '')[0] ||

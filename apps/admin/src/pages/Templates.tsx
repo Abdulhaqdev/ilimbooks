@@ -115,6 +115,7 @@ function PreviewModal({ preset, onClose, onUse }: { preset: Preset; onClose: () 
 export default function Templates() {
   const q = useQuery({ queryKey: ['presets'], queryFn: () => api<Preset[]>('/api/admin/presets'), staleTime: 5 * 60_000 });
   const [cat, setCat] = useState('');
+  const [src, setSrc] = useState('');
   const [preview, setPreview] = useState<Preset | null>(null);
   const [using, setUsing] = useState<Preset | null>(null);
 
@@ -123,16 +124,47 @@ export default function Templates() {
   }, []);
 
   const presets = q.data || [];
-  const cats = useMemo(() => [...new Set(presets.map((p) => p.category))], [presets]);
-  const list = cat ? presets.filter((p) => p.category === cat) : presets;
+  const sources = useMemo(() => [...new Set(presets.map((p) => p.source))], [presets]);
+  const bySource = src ? presets.filter((p) => p.source === src) : presets;
+  const cats = useMemo(() => [...new Set(bySource.map((p) => p.category))], [bySource]);
+  const list = cat ? bySource.filter((p) => p.category === cat) : bySource;
 
   return (
     <div>
       <h1 className="a-h1">Tayyor shablonlar</h1>
       <p className="a-sub">
-        Instagram target uchun {presets.length || 10} ta sotuvchi shablon — har biri alohida mahsulotga moslangan, ShoxMarket
-        mahsulotlari offer ID bilan tayyor. Shablonni tanlang, kerak bo‘lsa matn va rasmlarni o‘zgartiring va ishga tushiring.
+        {presets.length || 10} ta sotuvchi shablon — har biri alohida mahsulotga moslangan, market
+        offer ID bilan tayyor. Shablonni tanlang, kerak bo‘lsa matn va rasmlarni o‘zgartirib ishga
+        tushiring. Landing shablonning marketiga avtomatik bog‘lanadi.
       </p>
+
+      {sources.length > 1 ? (
+        <div className="a-seg" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={!src ? 'on' : ''}
+            onClick={() => {
+              setSrc('');
+              setCat('');
+            }}
+          >
+            Barcha marketlar
+          </button>
+          {sources.map((sv) => (
+            <button
+              key={sv}
+              type="button"
+              className={src === sv ? 'on' : ''}
+              onClick={() => {
+                setSrc(sv);
+                setCat('');
+              }}
+            >
+              {sv}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {cats.length > 1 ? (
         <div className="a-seg" style={{ marginBottom: 18, flexWrap: 'wrap' }}>

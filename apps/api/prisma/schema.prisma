@@ -14,6 +14,35 @@ model AdminUser {
   createdAt    DateTime @default(now())
 }
 
+/// Admin panelda almashtiriladigan akkaunt (har biri o'z marketlari, landinglari va analitikasi bilan).
+model Account {
+  code      String   @id
+  name      String
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+/// CPA market (ShoxMarket, Amiram, ...) — lead shu API'ga uzatiladi.
+/// Barcha "AliTrend" tizimidagi marketlar bir xil shaklda: api_key + stream + offer_id.
+model Market {
+  id             String   @id @default(cuid())
+  account        String
+  code           String
+  name           String
+  endpoint       String   @default("")
+  apiKey         String   @default("")
+  defaultStream  String   @default("")
+  defaultOfferId String   @default("")
+  active         Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([account, code])
+  @@index([account])
+}
+
 model Setting {
   key       String   @id
   value     String   @default("")
@@ -71,15 +100,23 @@ model Landing {
   id          String   @id @default(cuid())
   slug        String   @unique
   name        String
-  template    String   @default("full") // full | compact
+  template    String   @default("full")
   active      Boolean  @default(true)
   content     Json
   pixelId     String   @default("")
-  shoxStream  String   @default("")
-  shoxOfferId String   @default("")
+  /// Qaysi akkauntga tegishli (Account.code)
+  account     String   @default("nazir")
+  /// Lead qaysi marketga ketadi (Market.id). Bo'sh — akkauntning birinchi faol marketi.
+  marketId    String?
+  /// Market oqimi (stream kaliti) — bo'sh bo'lsa market standarti
+  stream      String   @default("")
+  /// Market mahsulot raqami (offer_id) — bo'sh bo'lsa market standarti
+  offerId     String   @default("")
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([account])
 }
 
 /// Landingdan kelgan buyurtma (ism + telefon). ShoxMarket API'ga yuboriladi.
@@ -87,6 +124,10 @@ model Lead {
   id          String   @id @default(cuid())
   name        String
   phone       String
+  account     String   @default("nazir")
+  marketId    String?
+  /// Uzatilgan market nomi (tarix uchun, market o'chirilsa ham qoladi)
+  marketName  String?
   offerId     String?
   stream      String?
   status      String   @default("new") // new | sent | failed
@@ -109,4 +150,5 @@ model Lead {
   @@index([status])
   @@index([phone])
   @@index([vid])
+  @@index([account])
 }

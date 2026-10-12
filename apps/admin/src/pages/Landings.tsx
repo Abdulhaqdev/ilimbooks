@@ -53,7 +53,7 @@ export default function Landings() {
         <div>
           <h1 className="a-h1">Landinglar</h1>
           <p className="a-sub" style={{ marginBottom: 0 }}>
-            Har bir landing — alohida manzil, kontent, Pixel va ShoxMarket oqimi.
+            Har bir landing — alohida manzil, kontent, Pixel va market oqimi.
           </p>
         </div>
         <div className="a-row" style={{ margin: 0 }}>
@@ -82,6 +82,19 @@ export default function Landings() {
                   <a className="a-lurl" href={landingUrl(l.path)} target="_blank" rel="noreferrer">
                     {l.path}
                   </a>
+                  <div className="a-row" style={{ margin: '4px 0 0', gap: 6, flexWrap: 'wrap' }}>
+                    {l.marketName ? <span className="a-pill tag">{l.marketName}</span> : null}
+                    {l.offerId ? <span className="a-pill tag">#{l.offerId}</span> : null}
+                    {l.ready === false ? (
+                      <Link
+                        to={`/landings/${l.id}`}
+                        className="a-pill bad"
+                        title="Buyurtma bazada saqlanadi, lekin marketga uzatilmaydi"
+                      >
+                        {(l.missing || []).join(' + ')} yo‘q
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
                 <label className="a-toggle" title={l.active ? 'Faol — o‘chirish' : 'O‘chiq — yoqish'}>
                   <input

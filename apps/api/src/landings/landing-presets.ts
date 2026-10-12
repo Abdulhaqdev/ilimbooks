@@ -1,4 +1,5 @@
 import { DEFAULT_CONTENT, LandingContent, Template } from './landing-content';
+import { AMIRAM_CATALOG, amiramPreset } from './amiram-catalog';
 import { CatalogItem, SHOX_CATALOG } from './shox-catalog';
 
 export type Preset = {
@@ -7,7 +8,9 @@ export type Preset = {
   goal: string;
   product: string;
   category: string;
-  source: 'shoxmarket.uz' | '100k.uz';
+  source: string;
+  /** Qaysi market katalogidan (Market.code) — landing yaratilganda shu market tanlanadi */
+  marketCode?: string;
   sourceUrl: string;
   template: Template;
   tags: string[];
@@ -72,6 +75,7 @@ function fromCatalog(c: CatalogItem): Preset {
     product: c.name,
     category: SHOX_CATEGORY.find(([, ids]) => ids.includes(c.offerId))?.[0] ?? 'Oila va hayot kitoblari',
     source: 'shoxmarket.uz',
+    marketCode: 'shoxmarket',
     sourceUrl: `https://shoxmarket.uz/product/${c.offerId}`,
     template: c.template,
     tags: [`ShoxMarket #${c.offerId}`, TEMPLATE_NAME[c.template]],
@@ -529,6 +533,7 @@ export const PRESETS: Preset[] = [
     },
   },
   ...SHOX_CATALOG.map(fromCatalog),
+  ...AMIRAM_CATALOG.map(amiramPreset),
 ];
 
 export function findPreset(id: unknown) {

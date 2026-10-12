@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Account, DEFAULT_ACCOUNT, normAccount } from '../common/account';
 import { LandingsService } from '../landings/landings.service';
-import { SettingsService } from '../settings/settings.service';
+import { forwardLead } from '../markets/market-forward';
+import { MarketsService } from '../markets/markets.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 type OrderMeta = {
   utmSource?: string;
@@ -35,7 +37,7 @@ function normPhone(raw: string): string {
   let d = String(raw || '').replace(/[^\d]/g, '');
   if (d.startsWith('998')) d = d.slice(3);
   d = d.slice(-9); // oxirgi 9 raqam
-  return d.length === 9 ? `+998${d}` : `+998${d}`;
+  return `+998${d}`;
 }
 
 @Injectable()
@@ -44,8 +46,8 @@ export class OrdersService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly settings: SettingsService,
     private readonly landings: LandingsService,
+    private readonly markets: MarketsService,
   ) {}
 
   async create(input: OrderInput) {
@@ -71,18 +73,21 @@ export class OrdersService {
       };
     }
 
-    const s = await this.settings.getAll('nazir');
-    const endpoint = (s.shox_endpoint || '').trim() || 'https://api.shoxmarket.uz/create';
-    const apiKey = (s.shox_api_key || '').trim();
+    // Buyurtma kelgan landing — akkaunt, market, oqim va mahsulotni shu belgilaydi
     const meta = input.meta || {};
     const landing = await this.landings.findByPath(meta.page);
-    const stream = (landing?.shoxStream || s.shox_stream || '').trim();
-    const offerId = (landing?.shoxOfferId || s.shox_offer_id || '').trim();
+    const account: Account = landing ? normAccount(landing.account) : DEFAULT_ACCOUNT;
+    const market = await this.markets.resolve(account, landing?.marketId);
+    const stream = (landing?.stream || market?.defaultStream || '').trim();
+    const offerId = (landing?.offerId || market?.defaultOfferId || '').trim();
 
     const lead = await this.prisma.lead.create({
       data: {
         name,
         phone,
+        account,
+        marketId: market?.id || null,
+        marketName: market?.name || null,
         offerId: offerId || null,
         stream: stream || null,
         status: 'new',
@@ -103,14 +108,21 @@ export class OrdersService {
       await this.markConverted(lead.sid).catch(() => {});
     }
 
-    // ShoxMarket API'ga uzatamiz
-    const forward = await this.forward(endpoint, {
-      api_key: apiKey,
-      stream,
-      offer_id: offerId,
-      name,
-      phone,
-    });
+    const forward = market
+      ? await forwardLead(market.endpoint, {
+          api_key: market.apiKey,
+          stream,
+          offer_id: offerId,
+          name,
+          phone,
+        })
+      : { ok: false, message: 'Market sozlanmagan' };
+
+    if (!forward.ok) {
+      this.log.warn(
+        `lead ${lead.id} uzatilmadi (${market?.name || 'market yo‘q'}): ${forward.message}`,
+      );
+    }
 
     await this.prisma.lead.update({
       where: { id: lead.id },
@@ -122,44 +134,8 @@ export class OrdersService {
       },
     });
 
-    // Mijozga har doim muvaffaqiyat: lead saqlandi. Uzatish holati adminda ko‘rinadi.
+    // Mijozga har doim muvaffaqiyat: lead saqlandi. Uzatish holati adminda ko'rinadi.
     return { ok: true, id: lead.id, forwarded: forward.ok };
-  }
-
-  /** ShoxMarket /create — application/x-www-form-urlencoded */
-  private async forward(
-    endpoint: string,
-    fields: Record<string, string>,
-  ): Promise<{ ok: boolean; id?: string | number; message?: string }> {
-    if (!fields.api_key) {
-      this.log.warn('shox_api_key bo‘sh — uzatilmadi');
-      return { ok: false, message: 'api_key sozlanmagan' };
-    }
-    try {
-      const body = new URLSearchParams(fields).toString();
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body,
-        signal: AbortSignal.timeout(12000),
-      });
-      const text = await res.text();
-      let data: any = {};
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { raw: text.slice(0, 200) };
-      }
-      const ok = data?.ok === true || data?.success === true;
-      return {
-        ok,
-        id: data?.id,
-        message: data?.message || (ok ? 'ok' : `HTTP ${res.status}`),
-      };
-    } catch (e) {
-      this.log.error(`ShoxMarket uzatishda xato: ${String(e)}`);
-      return { ok: false, message: 'Tarmoq xatosi' };
-    }
   }
 
   private async markConverted(sid: string) {
@@ -174,18 +150,53 @@ export class OrdersService {
     });
   }
 
-  async list(params: { limit?: number; status?: string } = {}) {
+  /** Qayta uzatish — oqim/offer tuzatilgandan keyin "failed" leadni yana yuborish. */
+  async retry(id: string) {
+    const lead = await this.prisma.lead.findUnique({ where: { id } });
+    if (!lead) return { ok: false, message: 'Buyurtma topilmadi' };
+    const landing = await this.landings.findByPath(lead.page || '/');
+    const market = await this.markets.resolve(
+      normAccount(lead.account),
+      lead.marketId || landing?.marketId,
+    );
+    if (!market) return { ok: false, message: 'Market sozlanmagan' };
+    const stream = (landing?.stream || lead.stream || market.defaultStream || '').trim();
+    const offerId = (landing?.offerId || lead.offerId || market.defaultOfferId || '').trim();
+    const forward = await forwardLead(market.endpoint, {
+      api_key: market.apiKey,
+      stream,
+      offer_id: offerId,
+      name: lead.name,
+      phone: lead.phone,
+    });
+    await this.prisma.lead.update({
+      where: { id: lead.id },
+      data: {
+        marketId: market.id,
+        marketName: market.name,
+        stream: stream || null,
+        offerId: offerId || null,
+        status: forward.ok ? 'sent' : 'failed',
+        shoxOk: forward.ok,
+        shoxId: forward.id ? String(forward.id) : null,
+        shoxMessage: forward.message?.slice(0, 300) || null,
+      },
+    });
+    return { ok: forward.ok, message: forward.message };
+  }
+
+  async list(params: { limit?: number; status?: string; account?: Account } = {}) {
     const limit = Math.min(500, Math.max(1, params.limit || 200));
-    const where = params.status ? { status: params.status } : {};
+    const account = normAccount(params.account);
+    const where = {
+      account,
+      ...(params.status ? { status: params.status } : {}),
+    };
     const [rows, total, sent, failed] = await Promise.all([
-      this.prisma.lead.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-      }),
-      this.prisma.lead.count(),
-      this.prisma.lead.count({ where: { status: 'sent' } }),
-      this.prisma.lead.count({ where: { status: 'failed' } }),
+      this.prisma.lead.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit }),
+      this.prisma.lead.count({ where: { account } }),
+      this.prisma.lead.count({ where: { account, status: 'sent' } }),
+      this.prisma.lead.count({ where: { account, status: 'failed' } }),
     ]);
     return { ok: true, rows, stats: { total, sent, failed } };
   }
