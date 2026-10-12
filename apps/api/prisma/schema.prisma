@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  sid         String   @unique
+  page        String   @default("/")
+  account     String   @default("nazir")
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  referrer    String?
+  ua          String?
+  device      String?
+  browser     String?
+  os          String?
+  maxScroll   Int      @default(0)
+  dwellMs     Int      @default(0)
+  converted   Boolean  @default(false)
+  firstSeen   DateTime @default(now())
+  lastSeen    DateTime @default(now())
+  events      Event[]
+
+  @@index([lastSeen])
+  @@index([firstSeen])
+  @@index([converted])
+  @@index([utmContent])
+  @@index([utmSource])
+  @@index([utmCampaign])
+  @@index([account])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type      String
+  elId      String?
+  elText    String?
+  scrollPct Int?
+  dwellMs   Int?
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+/// Admin paneldan boshqariladigan landing sahifa. slug "" — bosh sahifa (/).
+model Landing {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  template    String   @default("full") // full | compact
+  active      Boolean  @default(true)
+  content     Json
+  pixelId     String   @default("")
+  shoxStream  String   @default("")
+  shoxOfferId String   @default("")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// Landingdan kelgan buyurtma (ism + telefon). ShoxMarket API'ga yuboriladi.
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String
+  offerId     String?
+  stream      String?
+  status      String   @default("new") // new | sent | failed
+  shoxOk      Boolean  @default(false)
+  shoxId      String?
+  shoxMessage String?
+  sid         String?
+  /// Tashrif buyuruvchi (httpOnly cookie) — buyurtmalar limitini hisoblash uchun
+  vid         String?
+  page        String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  referrer    String?
+  ua          String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([phone])
+  @@index([vid])
+}

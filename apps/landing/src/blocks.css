@@ -1,0 +1,136 @@
+/* Shablonlar uchun umumiy bloklar. Har shablon o'z ildiz klassida quyidagi o'zgaruvchilarni beradi:
+   --ac, --ac-ink, --text, --muted, --card, --line, --field, --rad */
+
+.tpl {
+  --text: #111827;
+  --muted: #6b7280;
+  --card: #fff;
+  --line: #e5e7eb;
+  --field: #f9fafb;
+  --rad: 18px;
+  min-height: 100vh;
+  min-height: 100svh;
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.tpl-in { max-width: 480px; margin: 0 auto; }
+
+/* Yulduzlar */
+.b-stars { color: #f5b301; letter-spacing: 1px; font-size: 14px; white-space: nowrap; }
+.b-stars i { font-style: normal; color: rgba(127, 127, 127, 0.35); }
+
+/* Narx */
+.b-price { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.b-price b { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.b-price b small { font-size: 0.5em; font-weight: 700; }
+.b-price s { color: var(--muted); font-size: 16px; }
+
+/* Galereya */
+.b-gal { position: relative; overflow: hidden; border-radius: var(--rad); background: #f3f4f6; }
+.b-gal-track {
+  display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.b-gal-track::-webkit-scrollbar { display: none; }
+.b-gal-slide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 1; }
+.b-gal-slide img { width: 100%; height: 100%; object-fit: cover; }
+.b-gal-dots {
+  position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 6px;
+}
+.b-gal-dots button {
+  width: 7px; height: 7px; border-radius: 99px; padding: 0; background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12); transition: width 0.2s ease;
+}
+.b-gal-dots button.on { width: 20px; background: #fff; }
+
+/* Buyurtma formasi */
+.of { display: grid; gap: 10px; }
+.of-in {
+  width: 100%; height: 54px; padding: 0 16px; font: inherit; font-size: 16px; color: var(--text);
+  background: var(--field); border: 1.5px solid var(--line); border-radius: calc(var(--rad) * 0.7);
+  outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.of-in::placeholder { color: var(--muted); opacity: 0.8; }
+.of-in:focus { border-color: var(--ac); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ac) 18%, transparent); }
+.of-err { color: #dc2626; font-size: 14px; font-weight: 600; }
+.of-btn {
+  position: relative; overflow: hidden; height: 58px; border-radius: calc(var(--rad) * 0.7);
+  background: var(--ac); color: var(--ac-ink); font: inherit; font-size: 17px; font-weight: 800;
+  letter-spacing: 0.01em; box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--ac) 70%, transparent);
+  transition: transform 0.12s ease;
+}
+.of-btn::after {
+  content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg); animation: of-shine 2.8s ease-in-out infinite;
+}
+@keyframes of-shine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+.of-btn:active { transform: scale(0.98); }
+.of-btn:disabled { opacity: 0.7; }
+.of-trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 12.5px; color: var(--muted); }
+.of-done { text-align: center; padding: 26px 18px; }
+.of-ok-ic {
+  width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center;
+  background: #16a34a; color: #fff; font-size: 32px; font-weight: 800;
+  animation: of-pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes of-pop { from { transform: scale(0.4); opacity: 0; } }
+.of-done h3 { margin: 0 0 6px; font-size: 21px; }
+.of-done p { margin: 0; color: var(--muted); }
+
+/* Pastki sticky tugma */
+.b-sticky {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  display: flex; align-items: center; gap: 12px;
+  transform: translateY(110%); transition: transform 0.25s ease;
+}
+.b-sticky.on { transform: none; }
+.b-sticky-sub { flex-shrink: 0; line-height: 1.15; }
+.b-sticky-btn {
+  flex: 1; height: 52px; border-radius: calc(var(--rad) * 0.7); background: var(--ac); color: var(--ac-ink);
+  font: inherit; font-size: 16px; font-weight: 800; animation: b-pulse 2s ease-in-out infinite;
+}
+@keyframes b-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+
+/* Sharhlar */
+.b-revs { display: grid; gap: 10px; }
+.b-rev { background: var(--card); border: 1px solid var(--line); border-radius: var(--rad); padding: 14px; }
+.b-rev-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.b-rev-av {
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center;
+  color: #fff; font-weight: 800;
+}
+.b-rev-who { flex: 1; min-width: 0; line-height: 1.2; }
+.b-rev-who b { display: block; font-size: 14.5px; }
+.b-rev-who small { color: var(--muted); font-size: 12.5px; }
+.b-rev p { margin: 0; font-size: 14.5px; }
+
+/* FAQ */
+.b-faq { display: grid; gap: 8px; }
+.b-faq-it { background: var(--card); border: 1px solid var(--line); border-radius: calc(var(--rad) * 0.8); padding: 0 16px; }
+.b-faq-it summary {
+  list-style: none; cursor: pointer; padding: 15px 0; font-weight: 700; font-size: 15px;
+  display: flex; justify-content: space-between; gap: 12px;
+}
+.b-faq-it summary::-webkit-details-marker { display: none; }
+.b-faq-it summary::after { content: '+'; font-size: 20px; line-height: 1; color: var(--ac); transition: transform 0.2s; }
+.b-faq-it[open] summary::after { transform: rotate(45deg); }
+.b-faq-it p { margin: 0 0 15px; color: var(--muted); font-size: 14.5px; }
+
+/* Taymer */
+.b-clock { display: flex; gap: 8px; justify-content: center; }
+.b-clock-u {
+  min-width: 64px; padding: 8px 6px; border-radius: 14px; text-align: center; line-height: 1;
+  background: var(--card); border: 1px solid var(--line);
+}
+.b-clock-u b { display: block; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.b-clock-u small { font-size: 11px; color: var(--muted); }
+
+.b-sec { padding: 26px 16px 0; }
+.b-h2 { margin: 0 0 14px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.b-foot { padding: 28px 16px 110px; text-align: center; font-size: 12.5px; color: var(--muted); }

@@ -1,0 +1,83 @@
+.t-problem {
+  --text: #0f172a;
+  --muted: #64748b;
+  --card: #fff;
+  --line: #e2e8f0;
+  --field: #f8fafc;
+  --rad: 18px;
+  background: #f6f7f9;
+}
+
+.pr-pain {
+  color: #fff; padding: 22px 16px 70px; position: relative;
+  background: radial-gradient(600px 300px at 80% 0, rgba(239,68,68,.25), transparent 60%), linear-gradient(180deg, #0f172a, #1e1b2e);
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%);
+}
+.pr-brand { font-weight: 800; font-size: 14px; opacity: 0.8; margin-bottom: 18px; }
+.pr-pain h1 { margin: 0 0 18px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
+.pr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.pr-list li {
+  display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 14px; font-size: 15.5px; font-weight: 600;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  animation: pr-in 0.5s ease both;
+}
+@keyframes pr-in { from { opacity: 0; transform: translateX(-12px); } }
+.pr-list li span {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  background: #ef4444; color: #fff; font-size: 13px; font-weight: 900;
+}
+.pr-turn { display: flex; flex-direction: column; align-items: center; margin-top: 22px; gap: 4px; }
+.pr-turn span {
+  padding: 8px 18px; border-radius: 99px; background: var(--ac); color: var(--ac-ink); font-weight: 800; font-size: 15px;
+  box-shadow: 0 10px 24px -8px var(--ac);
+}
+.pr-turn i { font-style: normal; font-size: 22px; animation: st-bob 1.4s ease-in-out infinite; }
+@keyframes st-bob { 50% { transform: translateY(5px); } }
+
+.pr-sol { margin: -40px 16px 0; position: relative; z-index: 1; background: var(--card); border-radius: 24px; overflow: hidden; box-shadow: 0 24px 50px -20px rgba(15,23,42,.3); }
+.pr-gal { border-radius: 0; }
+.pr-off {
+  position: absolute; top: 12px; left: 12px; padding: 6px 12px; border-radius: 10px; font-weight: 800;
+  background: #ef4444; color: #fff;
+}
+.pr-sol-body { padding: 18px 16px 18px; }
+.pr-badge {
+  display: inline-block; font-size: 12px; font-weight: 800; padding: 5px 10px; border-radius: 99px;
+  background: color-mix(in srgb, var(--ac) 14%, transparent); color: color-mix(in srgb, var(--ac) 80%, #000);
+}
+.pr-sol-body h2 { margin: 10px 0 6px; font-size: 25px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
+.pr-sol-body > p { margin: 0 0 10px; color: var(--muted); }
+.pr-rate { font-size: 14px; color: var(--muted); }
+.pr-rate b { color: var(--text); }
+.pr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.pr-chips span { font-size: 12.5px; font-weight: 600; padding: 6px 10px; border-radius: 10px; background: var(--field); border: 1px solid var(--line); }
+.pr-price { margin: 14px 0; }
+.pr-price b { color: var(--text); }
+.pr-cta {
+  width: 100%; height: 56px; border-radius: 14px; background: var(--ac); color: var(--ac-ink);
+  font: inherit; font-size: 17px; font-weight: 800; box-shadow: 0 12px 26px -10px var(--ac);
+}
+
+.pr-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: s; }
+.pr-steps li {
+  display: flex; gap: 12px; padding: 14px; border-radius: var(--rad); background: var(--card); border: 1px solid var(--line);
+}
+.pr-ic {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px;
+  background: color-mix(in srgb, var(--ac) 14%, transparent);
+}
+.pr-steps b { display: block; font-size: 15.5px; margin-bottom: 2px; }
+.pr-steps p { margin: 0; color: var(--muted); font-size: 14px; }
+
+.pr-order { padding: 20px 16px; border-radius: 24px; background: var(--card); border: 2px solid var(--ac); }
+.pr-order .b-h2 { margin-bottom: 4px; text-align: center; }
+.pr-order-sub { margin: 0 0 14px; text-align: center; color: var(--muted); font-size: 14px; }
+.pr-timer { text-align: center; margin-bottom: 14px; }
+.pr-timer small { display: block; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.t-problem .b-clock-u { background: var(--field); }
+.pr-urg { text-align: center; font-size: 13.5px; font-weight: 700; color: #dc2626; }
+
+.pr-guar { display: flex; gap: 12px; align-items: center; padding: 16px; border-radius: var(--rad); background: #ecfdf5; border: 1px solid #a7f3d0; }
+.pr-guar span { font-size: 30px; }
+.pr-guar b { display: block; }
+.pr-guar p { margin: 2px 0 0; font-size: 14px; color: #065f46; }

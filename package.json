@@ -1,0 +1,22 @@
+{
+  "name": "ilimbooks",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "dependencies": {
+    "@nestjs/platform-express": "^11.0.1"
+  },
+  "scripts": {
+    "dev:api": "npm run start:dev -w api",
+    "dev:landing": "npm run dev -w landing",
+    "dev:admin": "npm run dev -w admin",
+    "build": "npm run build -w api && npm run build -w landing && npm run build -w admin",
+    "build:api": "npm run build -w api",
+    "build:landing": "npm run build -w landing",
+    "build:admin": "npm run build -w admin",
+    "prisma:generate": "npm run prisma:generate -w api",
+    "prisma:migrate": "npm run prisma:migrate -w api",
+    "prisma:seed": "npm run prisma:seed -w api"
+  }
+}
