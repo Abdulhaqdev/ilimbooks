@@ -56,7 +56,12 @@ export class OrdersController {
       });
     }
 
-    return this.orders.create({ ...payload, meta, vid });
+    return this.orders.create({
+      ...payload,
+      meta,
+      vid,
+      cookies: (req.cookies as Record<string, string>) || {},
+    });
   }
 
   /** Admin — buyurtmalar ro‘yxati */

@@ -63,6 +63,8 @@ model Session {
   device      String?
   browser     String?
   os          String?
+  /// Rotatsiya sahifasida ko'rsatilgan landing (Landing.id) — A/B statistikasi uchun
+  variant     String?
   maxScroll   Int      @default(0)
   dwellMs     Int      @default(0)
   converted   Boolean  @default(false)
@@ -77,6 +79,7 @@ model Session {
   @@index([utmSource])
   @@index([utmCampaign])
   @@index([account])
+  @@index([variant])
 }
 
 model Event {
@@ -115,8 +118,42 @@ model Landing {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  rotations   RotationVariant[]
 
   @@index([account])
+}
+
+/// Bitta havola — ichida bir nechta landing navbat bilan ko'rsatiladi (A/B test).
+model Rotation {
+  id        String            @id @default(cuid())
+  account   String
+  /// URL qismi — Landing slug'lari bilan bitta maydonda, takrorlanmaydi
+  slug      String            @unique
+  name      String
+  active    Boolean           @default(true)
+  /// Navbat hisoblagichi: har yangi tashrifchiga keyingi variant beriladi
+  cursor    Int               @default(0)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  variants  RotationVariant[]
+
+  @@index([account])
+}
+
+/// Rotatsiyadagi bitta landing. active=false — vaqtincha ko'rsatilmaydi.
+model RotationVariant {
+  id         String   @id @default(cuid())
+  rotationId String
+  rotation   Rotation @relation(fields: [rotationId], references: [id], onDelete: Cascade)
+  landingId  String
+  landing    Landing  @relation(fields: [landingId], references: [id], onDelete: Cascade)
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@unique([rotationId, landingId])
+  @@index([rotationId])
+  @@index([landingId])
 }
 
 /// Landingdan kelgan buyurtma (ism + telefon). ShoxMarket API'ga yuboriladi.
@@ -128,6 +165,8 @@ model Lead {
   marketId    String?
   /// Uzatilgan market nomi (tarix uchun, market o'chirilsa ham qoladi)
   marketName  String?
+  /// Rotatsiya sahifasida ko'rsatilgan landing (Landing.id)
+  variant     String?
   offerId     String?
   stream      String?
   status      String   @default("new") // new | sent | failed

@@ -4,6 +4,7 @@ import { LandingsService } from '../landings/landings.service';
 import { forwardLead } from '../markets/market-forward';
 import { MarketsService } from '../markets/markets.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RotationsService, variantCookieName } from '../rotations/rotations.service';
 
 type OrderMeta = {
   utmSource?: string;
@@ -21,6 +22,8 @@ export type OrderInput = {
   sid?: string;
   vid?: string;
   meta?: OrderMeta;
+  /** httpOnly cookie'lar — rotatsiya varianti shundan aniqlanadi */
+  cookies?: Record<string, string>;
 };
 
 /** Bitta tashrif buyuruvchi (cookie yoki telefon) yubora oladigan maksimal buyurtma soni. */
@@ -48,6 +51,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly landings: LandingsService,
     private readonly markets: MarketsService,
+    private readonly rotations: RotationsService,
   ) {}
 
   async create(input: OrderInput) {
@@ -61,9 +65,20 @@ export class OrdersService {
       return { ok: false, message: "Telefon raqami noto‘g‘ri" };
     }
 
-    // Buyurtma kelgan landing — akkaunt, market, oqim va mahsulotni shu belgilaydi
+    // Buyurtma kelgan sahifa — akkaunt, market, oqim va mahsulotni shu belgilaydi.
+    // Rotatsiya havolasi bo'lsa, mijozga ko'rsatilgan variant landingi olinadi.
     const meta = input.meta || {};
-    const landing = await this.landings.findByPath(meta.page);
+    let landing = await this.landings.findByPath(meta.page);
+    let variant: string | null = null;
+    if (!landing) {
+      const probe = await this.rotations.resolveForTracking(meta.page || '/');
+      if (probe) {
+        const assigned = input.cookies?.[variantCookieName(probe.rotation.id)];
+        const match = probe.rotation.variants.find((v) => v.landingId === assigned);
+        landing = match?.landing ?? probe.landing;
+        variant = landing?.id ?? null;
+      }
+    }
     const account: Account = landing ? normAccount(landing.account) : DEFAULT_ACCOUNT;
 
     const vid = clip(input.vid, 64);
@@ -89,6 +104,7 @@ export class OrdersService {
         account,
         marketId: market?.id || null,
         marketName: market?.name || null,
+        variant,
         offerId: offerId || null,
         stream: stream || null,
         status: 'new',

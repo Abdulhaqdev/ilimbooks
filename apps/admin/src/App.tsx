@@ -9,6 +9,8 @@ import Markets from './pages/Markets';
 import Landings from './pages/Landings';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
+import RotationEdit from './pages/RotationEdit';
+import Rotations from './pages/Rotations';
 import Reklama from './pages/Reklama';
 import Settings from './pages/Settings';
 import Templates from './pages/Templates';
@@ -30,6 +32,8 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="landings" element={<Landings />} />
             <Route path="landings/:id" element={<LandingEdit />} />
+            <Route path="rotations" element={<Rotations />} />
+            <Route path="rotations/:id" element={<RotationEdit />} />
             <Route path="templates" element={<Templates />} />
             <Route path="templates/:market" element={<Templates />} />
             <Route path="orders" element={<Orders />} />

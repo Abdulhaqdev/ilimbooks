@@ -9,6 +9,8 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -17,8 +19,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import type { Request, Response } from 'express';
 import { AccountsService } from '../accounts/accounts.service';
 import { AdminAuthGuard } from '../auth/admin-auth.guard';
+import { RotationsService, variantCookieName } from '../rotations/rotations.service';
 import { type LandingInput, LandingsService } from './landings.service';
 
 export const UPLOAD_DIR = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
@@ -45,13 +49,39 @@ export class LandingsController {
   constructor(
     private readonly landings: LandingsService,
     private readonly accounts: AccountsService,
+    private readonly rotations: RotationsService,
   ) {}
 
+  /**
+   * Sahifa kontenti. Avval oddiy landing, bo'lmasa rotatsiya (bitta havola —
+   * ichida bir nechta landing navbat bilan). Tanlangan variant cookie'ga yoziladi,
+   * shuning uchun sahifa yangilanganda landing almashib ketmaydi.
+   */
   @Get('public/landing')
-  async publicLanding(@Query('path') path = '/') {
+  async publicLanding(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Query('path') path = '/',
+  ) {
     const l = await this.landings.getPublicByPath(path);
-    if (!l) throw new NotFoundException('Landing topilmadi');
-    return l;
+    if (l) return l;
+
+    const probe = await this.rotations.resolvePublic(path);
+    if (!probe) throw new NotFoundException('Sahifa topilmadi');
+    const cookieName = variantCookieName(probe.rotationId);
+    const assigned = req.cookies?.[cookieName] as string | undefined;
+    const picked = assigned
+      ? (await this.rotations.resolvePublic(path, assigned)) || probe
+      : probe;
+
+    res.cookie(cookieName, picked.landingId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+    return picked.payload;
   }
 
   @Get('admin/landings')

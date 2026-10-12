@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { accountLabel, getAccount } from '../lib/account';
 import { api } from '../lib/api';
 import { landingUrl, templateLabel, type Landing } from '../lib/landings';
+import type { RotationRow } from '../lib/rotations';
 import { IconCheck, IconExternal } from '../components/icons';
 
 async function copyText(text: string) {
@@ -54,22 +55,34 @@ export default function Reklama() {
     queryKey: ['landings'],
     queryFn: () => api<Landing[]>('/api/admin/landings'),
   });
+  const rq = useQuery({
+    queryKey: ['rotations'],
+    queryFn: () => api<RotationRow[]>('/api/admin/rotations'),
+  });
 
   const links = useMemo(
-    () =>
-      (q.data || [])
+    () => [
+      // Rotatsiya havolalari birinchi — reklamaga odatda shular qo'yiladi
+      ...(rq.data || [])
+        .filter((r) => r.active)
+        .map((r) => ({
+          slug: r.slug || 'home',
+          name: r.name,
+          path: r.path,
+          note: `Rotatsiya · ${r.live} landing`,
+          url: buildUrl(r.path, r.slug || 'home', source, medium, campaign),
+        })),
+      ...(q.data || [])
         .filter((l) => l.active)
-        .map((l) => {
-          const slug = l.slug || 'home';
-          return {
-            slug,
-            name: l.name,
-            path: l.path,
-            note: templateLabel(l.template),
-            url: buildUrl(l.path, slug, source, medium, campaign),
-          };
-        }),
-    [q.data, source, medium, campaign],
+        .map((l) => ({
+          slug: l.slug || 'home',
+          name: l.name,
+          path: l.path,
+          note: templateLabel(l.template),
+          url: buildUrl(l.path, l.slug || 'home', source, medium, campaign),
+        })),
+    ],
+    [q.data, rq.data, source, medium, campaign],
   );
 
   async function copy(url: string, key: string) {

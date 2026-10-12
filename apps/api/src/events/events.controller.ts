@@ -33,10 +33,13 @@ export class EventsController {
 
     const meta = { ...(payload.meta || {}) };
     if (!meta.ua) meta.ua = req.headers['user-agent'] || '';
-    await this.events.ingest({
-      sid: payload.sid,
-      events: payload.events as never,
-      meta: meta as never,
-    });
+    await this.events.ingest(
+      {
+        sid: payload.sid,
+        events: payload.events as never,
+        meta: meta as never,
+      },
+      (req.cookies as Record<string, string>) || {},
+    );
   }
 }

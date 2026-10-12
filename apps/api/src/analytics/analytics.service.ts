@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Account, DEFAULT_ACCOUNT, normAccount } from '../common/account';
 import { LandingsService } from '../landings/landings.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RotationsService } from '../rotations/rotations.service';
 
 export type RangeKey = '24h' | '3d' | '7d' | '30d';
 
@@ -18,6 +19,7 @@ const TEMPLATE_LABEL: Record<string, string> = {
   kids: 'Bolalar',
   bundle: "To'plam",
   minimal: "Minimal do'kon",
+  rotation: 'Rotatsiya',
 };
 
 function buildPageStats(sessions: { page: string; converted: boolean }[], pages: PageRef[]) {
@@ -102,15 +104,29 @@ export class AnalyticsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly landings: LandingsService,
+    private readonly rotations: RotationsService,
   ) {}
 
+  /** Trafik tushadigan barcha manzillar: landinglar + rotatsiya havolalari. */
   private async pageRefs(account: Account): Promise<PageRef[]> {
-    return (await this.landings.list(account)).map((l) => ({
-      path: l.path,
-      name: l.name,
-      template: l.template,
-      slug: l.slug,
-    }));
+    const [landings, rotations] = await Promise.all([
+      this.landings.list(account),
+      this.rotations.list(account),
+    ]);
+    return [
+      ...landings.map((l) => ({
+        path: l.path,
+        name: l.name,
+        template: l.template,
+        slug: l.slug,
+      })),
+      ...rotations.map((r) => ({
+        path: r.path,
+        name: r.name,
+        template: 'rotation',
+        slug: r.slug,
+      })),
+    ];
   }
 
   async dashboard(win: TimeWindow, account: Account = DEFAULT_ACCOUNT) {

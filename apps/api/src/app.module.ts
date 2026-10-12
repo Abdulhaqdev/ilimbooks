@@ -7,6 +7,7 @@ import { EventsModule } from './events/events.module';
 import { LandingsModule } from './landings/landings.module';
 import { OrdersModule } from './orders/orders.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RotationsModule } from './rotations/rotations.module';
 import { MarketsModule } from './markets/markets.module';
 import { MetaModule } from './meta/meta.module';
 import { SettingsModule } from './settings/settings.module';
@@ -23,6 +24,7 @@ import { SettingsModule } from './settings/settings.module';
     SettingsModule,
     LandingsModule,
     MarketsModule,
+    RotationsModule,
     MetaModule,
   ],
 })

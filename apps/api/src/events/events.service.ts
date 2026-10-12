@@ -3,6 +3,7 @@ import { UAParser } from 'ua-parser-js';
 import { DEFAULT_ACCOUNT, normAccount } from '../common/account';
 import { LandingsService } from '../landings/landings.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RotationsService, variantCookieName } from '../rotations/rotations.service';
 
 type InEvent = {
   type: string;
@@ -63,9 +64,13 @@ export class EventsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly landings: LandingsService,
+    private readonly rotations: RotationsService,
   ) {}
 
-  async ingest(payload: { sid?: string; events?: InEvent[]; meta?: InMeta }) {
+  async ingest(
+    payload: { sid?: string; events?: InEvent[]; meta?: InMeta },
+    cookies: Record<string, string> = {},
+  ) {
     const sid = clip(payload.sid, 64);
     if (!sid || !Array.isArray(payload.events) || !payload.events.length) {
       return { ok: false };
@@ -77,7 +82,18 @@ export class EventsService {
     const page = normPage(rawPage);
     // Akkaunt sahifaga mos landingdan olinadi (brauzer yuborgan qiymatga ishonmaymiz)
     const landing = await this.landings.findByPath(page);
-    const account = landing ? normAccount(landing.account) : DEFAULT_ACCOUNT;
+    let account = landing ? normAccount(landing.account) : DEFAULT_ACCOUNT;
+    // Rotatsiya sahifasi bo'lsa — qaysi variant ko'rsatilgani cookie'dan aniqlanadi
+    let variant: string | null = null;
+    if (!landing) {
+      const probe = await this.rotations.resolveForTracking(page);
+      if (probe) {
+        account = normAccount(probe.rotation.account);
+        const assigned = cookies[variantCookieName(probe.rotation.id)];
+        const match = probe.rotation.variants.find((v) => v.landingId === assigned);
+        variant = match?.landingId ?? probe.landing?.id ?? null;
+      }
+    }
     const now = new Date();
 
     const events = payload.events.slice(0, 50).filter((e) => e?.type);
@@ -103,6 +119,7 @@ export class EventsService {
           sid,
           page,
           account,
+          variant,
           utmSource: clip(meta.utmSource, 60),
           utmMedium: clip(meta.utmMedium, 60),
           utmCampaign: clip(meta.utmCampaign, 80),
@@ -125,6 +142,7 @@ export class EventsService {
         data: {
           lastSeen: now,
           page,
+          variant: session.variant ?? variant,
           converted: hasCta || session.converted,
           maxScroll: Math.max(session.maxScroll, maxScroll),
           dwellMs: Math.max(session.dwellMs, dwellMs),
