@@ -77,7 +77,7 @@ export class OrdersController {
   /** Admin — uzatilmagan buyurtmani qayta yuborish */
   @Post('admin/orders/:id/retry')
   @UseGuards(AdminAuthGuard)
-  retry(@Param('id') id: string) {
-    return this.orders.retry(id);
+  async retry(@Param('id') id: string, @Query('acc') acc?: string) {
+    return this.orders.retry(id, await this.accounts.resolve(acc));
   }
 }

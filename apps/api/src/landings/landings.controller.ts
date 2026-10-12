@@ -68,8 +68,8 @@ export class LandingsController {
 
   @Get('admin/landings/:id')
   @UseGuards(AdminAuthGuard)
-  get(@Param('id') id: string) {
-    return this.landings.get(id);
+  async get(@Param('id') id: string, @Query('acc') acc?: string) {
+    return this.landings.get(id, await this.accounts.resolve(acc));
   }
 
   @Post('admin/landings')
@@ -80,20 +80,24 @@ export class LandingsController {
 
   @Patch('admin/landings/:id')
   @UseGuards(AdminAuthGuard)
-  update(@Param('id') id: string, @Body() body: LandingInput) {
-    return this.landings.update(id, body || {});
+  async update(
+    @Param('id') id: string,
+    @Body() body: LandingInput,
+    @Query('acc') acc?: string,
+  ) {
+    return this.landings.update(id, body || {}, await this.accounts.resolve(acc));
   }
 
   @Post('admin/landings/:id/duplicate')
   @UseGuards(AdminAuthGuard)
-  duplicate(@Param('id') id: string) {
-    return this.landings.duplicate(id);
+  async duplicate(@Param('id') id: string, @Query('acc') acc?: string) {
+    return this.landings.duplicate(id, await this.accounts.resolve(acc));
   }
 
   @Delete('admin/landings/:id')
   @UseGuards(AdminAuthGuard)
-  remove(@Param('id') id: string) {
-    return this.landings.remove(id);
+  async remove(@Param('id') id: string, @Query('acc') acc?: string) {
+    return this.landings.remove(id, await this.accounts.resolve(acc));
   }
 
   @Post('admin/upload')

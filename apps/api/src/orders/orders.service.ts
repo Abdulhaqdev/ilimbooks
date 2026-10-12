@@ -61,9 +61,14 @@ export class OrdersService {
       return { ok: false, message: "Telefon raqami noto‘g‘ri" };
     }
 
+    // Buyurtma kelgan landing — akkaunt, market, oqim va mahsulotni shu belgilaydi
+    const meta = input.meta || {};
+    const landing = await this.landings.findByPath(meta.page);
+    const account: Account = landing ? normAccount(landing.account) : DEFAULT_ACCOUNT;
+
     const vid = clip(input.vid, 64);
     const previous = await this.prisma.lead.count({
-      where: { OR: [{ phone }, ...(vid ? [{ vid }] : [])] },
+      where: { account, OR: [{ phone }, ...(vid ? [{ vid }] : [])] },
     });
     if (previous >= MAX_ORDERS_PER_VISITOR) {
       return {
@@ -73,10 +78,6 @@ export class OrdersService {
       };
     }
 
-    // Buyurtma kelgan landing — akkaunt, market, oqim va mahsulotni shu belgilaydi
-    const meta = input.meta || {};
-    const landing = await this.landings.findByPath(meta.page);
-    const account: Account = landing ? normAccount(landing.account) : DEFAULT_ACCOUNT;
     const market = await this.markets.resolve(account, landing?.marketId);
     const stream = (landing?.stream || market?.defaultStream || '').trim();
     const offerId = (landing?.offerId || market?.defaultOfferId || '').trim();
@@ -151,9 +152,12 @@ export class OrdersService {
   }
 
   /** Qayta uzatish — oqim/offer tuzatilgandan keyin "failed" leadni yana yuborish. */
-  async retry(id: string) {
+  async retry(id: string, account?: Account) {
     const lead = await this.prisma.lead.findUnique({ where: { id } });
     if (!lead) return { ok: false, message: 'Buyurtma topilmadi' };
+    if (account && lead.account !== normAccount(account)) {
+      return { ok: false, message: 'Bu buyurtma boshqa akkauntga tegishli' };
+    }
     const landing = await this.landings.findByPath(lead.page || '/');
     const market = await this.markets.resolve(
       normAccount(lead.account),

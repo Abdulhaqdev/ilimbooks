@@ -43,14 +43,17 @@ export function getAccount(): Account {
   }
 }
 
-/** Akkauntni almashtiradi. reload=true — barcha so'rovlar yangi akkaunt bilan qayta yuklanadi. */
+/**
+ * Akkauntni almashtiradi. Butun panel yangi akkaunt ma'lumotlari bilan qayta yuklanadi
+ * va bosh sahifaga qaytadi — boshqa akkauntning landingi/buyurtmasi ochiq qolmasligi uchun.
+ */
 export function setAccount(a: Account, reload = true) {
   try {
     localStorage.setItem(KEY, a);
   } catch {
     /* ignore */
   }
-  if (reload) location.reload();
+  if (reload) location.href = '/';
 }
 
 export function accountLabel(a: Account) {

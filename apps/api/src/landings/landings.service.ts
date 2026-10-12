@@ -122,12 +122,12 @@ export class LandingsService implements OnModuleInit {
     const [sessions, leads, markets] = await Promise.all([
       this.prisma.session.groupBy({
         by: ['page'],
-        where: { page: { in: paths }, firstSeen: { gte: since } },
+        where: { page: { in: paths }, account: acc, firstSeen: { gte: since } },
         _count: { _all: true },
       }),
       this.prisma.lead.groupBy({
         by: ['page'],
-        where: { page: { in: paths }, createdAt: { gte: since } },
+        where: { page: { in: paths }, account: acc, createdAt: { gte: since } },
         _count: { _all: true },
       }),
       this.prisma.market.findMany({ where: { account: acc } }),
@@ -161,10 +161,18 @@ export class LandingsService implements OnModuleInit {
     return PRESETS;
   }
 
-  async get(id: string) {
+  async get(id: string, account?: Account) {
+    return toDto(await this.own(id, account));
+  }
+
+  /** Landing shu akkauntga tegishli bo'lishi shart — akkauntlar bir-birinikini ko'rmaydi. */
+  private async own(id: string, account?: Account) {
     const l = await this.prisma.landing.findUnique({ where: { id } });
     if (!l) throw new NotFoundException('Landing topilmadi');
-    return toDto(l);
+    if (account && l.account !== normAccount(account)) {
+      throw new NotFoundException('Landing bu akkauntda topilmadi');
+    }
+    return l;
   }
 
   /** Public: faqat faol landing. */
@@ -227,9 +235,8 @@ export class LandingsService implements OnModuleInit {
     return toDto(l);
   }
 
-  async update(id: string, input: LandingInput) {
-    const cur = await this.prisma.landing.findUnique({ where: { id } });
-    if (!cur) throw new NotFoundException('Landing topilmadi');
+  async update(id: string, input: LandingInput, account?: Account) {
+    const cur = await this.own(id, account);
     const data: Prisma.LandingUpdateInput = {};
     if (input.name !== undefined) {
       const name = input.name.trim().slice(0, 120);
@@ -255,8 +262,8 @@ export class LandingsService implements OnModuleInit {
     return toDto(l);
   }
 
-  async duplicate(id: string) {
-    const cur = await this.get(id);
+  async duplicate(id: string, account?: Account) {
+    const cur = await this.get(id, account);
     let slug = `${cur.slug || 'landing'}-nusxa`;
     for (let i = 2; await this.prisma.landing.findUnique({ where: { slug } }); i++) {
       slug = `${cur.slug || 'landing'}-nusxa-${i}`;
@@ -274,9 +281,8 @@ export class LandingsService implements OnModuleInit {
     });
   }
 
-  async remove(id: string) {
-    const cur = await this.prisma.landing.findUnique({ where: { id } });
-    if (!cur) throw new NotFoundException('Landing topilmadi');
+  async remove(id: string, account?: Account) {
+    const cur = await this.own(id, account);
     if (cur.slug === '') {
       throw new BadRequestException('Bosh sahifa (/) landingini o‘chirib bo‘lmaydi');
     }

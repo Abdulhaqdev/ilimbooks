@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { api, LANDING_URL } from '../lib/api';
+import { api } from '../lib/api';
 import { useTheme } from '../lib/theme';
 import { TimeProvider } from '../lib/time';
 import {
   IconChart,
   IconDashboard,
-  IconExternal,
   IconLayout,
   IconLogout,
   IconMegaphone,
@@ -80,10 +79,6 @@ export default function Shell() {
               {theme === 'dark' ? <IconSun /> : <IconMoon />}
               <span>{theme === 'dark' ? 'Yorug‘ rejim' : 'Qorong‘i rejim'}</span>
             </button>
-            <a className="a-side-link" href={LANDING_URL} target="_blank" rel="noreferrer">
-              <IconExternal />
-              <span>Saytni ko‘rish</span>
-            </a>
             <button className="a-side-link danger" type="button" onClick={logout}>
               <IconLogout />
               <span>Chiqish</span>
