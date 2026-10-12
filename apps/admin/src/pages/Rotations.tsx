@@ -66,21 +66,28 @@ function CreateModal({ onClose }: { onClose: () => void }) {
     create.mutate();
   }
 
+  const pickedRows = useMemo(
+    () => picked.map((id) => (lq.data || []).find((l) => l.id === id)).filter(Boolean) as Landing[],
+    [picked, lq.data],
+  );
+
   return (
     <div className="a-modal-back" onClick={onClose}>
       <form className="a-modal a-rot-modal" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
-        <div className="a-modal-h">
-          <h2>Yangi rotatsiya</h2>
-          <button className="a-icon-btn" type="button" onClick={onClose} aria-label="Yopish">
-            <IconX />
-          </button>
+        <div className="a-rot-head">
+          <div className="a-modal-h">
+            <h2>Yangi rotatsiya</h2>
+            <button className="a-icon-btn" type="button" onClick={onClose} aria-label="Yopish">
+              <IconX />
+            </button>
+          </div>
+          <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>
+            Bitta havola — ichidagi landinglar har bir yangi tashrifchiga navbat bilan ko‘rsatiladi.
+            Qaysi biri ko‘proq buyurtma beryaptini statistikada ko‘rasiz.
+          </p>
         </div>
-        <p className="muted" style={{ margin: '0 0 18px', fontSize: 13.5 }}>
-          Bitta havola — ichidagi landinglar har bir yangi tashrifchiga navbat bilan ko‘rsatiladi.
-          Qaysi biri ko‘proq buyurtma beryaptini statistikada ko‘rasiz.
-        </p>
 
-        <div className="a-f">
+        <div className="a-rot-body a-f">
           <div className="a-grid-2">
             <div>
               <label className="a-lbl" htmlFor="rn">Nomi (faqat adminda)</label>
@@ -114,16 +121,37 @@ function CreateModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <div className="a-row spread" style={{ margin: '0 0 8px' }}>
-              <span className="a-lbl" style={{ margin: 0 }}>
-                Landinglar {picked.length ? `· ${picked.length} ta tanlandi` : ''}
-              </span>
+            <div className="a-pick-head">
+              <b>Landinglar · {picked.length} ta tanlandi</b>
               {picked.length ? (
                 <button className="a-btn sm" type="button" onClick={() => setPicked([])}>
-                  Tozalash
+                  Hammasini olib tashlash
                 </button>
               ) : null}
             </div>
+
+            {pickedRows.length ? (
+              <div className="a-chips">
+                {pickedRows.map((l, i) => (
+                  <span className="a-chip" key={l.id}>
+                    <b>{i + 1}</b>
+                    <span>{l.name}</span>
+                    <button
+                      type="button"
+                      aria-label="Olib tashlash"
+                      onClick={() => setPicked((p) => p.filter((x) => x !== l.id))}
+                    >
+                      <IconX size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="a-note" style={{ margin: '0 0 10px' }}>
+                Kamida 2 ta landing tanlang — havola shular orasida navbat bilan aylanadi.
+              </div>
+            )}
+
             <input
               className="a-in"
               value={q}
@@ -131,7 +159,7 @@ function CreateModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setQ(e.target.value)}
             />
             <div className="a-pick">
-              {lq.isLoading ? <p className="muted">Yuklanmoqda…</p> : null}
+              {lq.isLoading ? <p className="muted" style={{ padding: 12 }}>Yuklanmoqda…</p> : null}
               {list.map((l) => {
                 const on = picked.includes(l.id);
                 return (
@@ -139,10 +167,12 @@ function CreateModal({ onClose }: { onClose: () => void }) {
                     type="button"
                     key={l.id}
                     className={on ? 'a-pick-row on' : 'a-pick-row'}
+                    aria-pressed={on}
                     onClick={() =>
                       setPicked((p) => (on ? p.filter((x) => x !== l.id) : [...p, l.id]))
                     }
                   >
+                    <span className="a-pick-box">{on ? <IconCheck size={13} /> : null}</span>
                     <span className="a-pick-img">
                       {l.content.images[0] ? <img src={imgSrc(l.content.images[0])} alt="" /> : null}
                     </span>
@@ -152,23 +182,28 @@ function CreateModal({ onClose }: { onClose: () => void }) {
                         {l.path} · {templateLabel(l.template)}
                       </small>
                     </span>
-                    <span className="a-pick-mark">{on ? <IconCheck size={14} /> : null}</span>
                   </button>
                 );
               })}
-              {!lq.isLoading && !list.length ? <p className="muted">Landing topilmadi</p> : null}
+              {!lq.isLoading && !list.length ? (
+                <p className="muted" style={{ padding: 12 }}>Landing topilmadi</p>
+              ) : null}
             </div>
           </div>
 
-          {err ? <div className="a-err">{err}</div> : null}
-          <div className="a-row" style={{ justifyContent: 'flex-end', margin: 0 }}>
-            <button className="a-btn" type="button" onClick={onClose}>
-              Bekor qilish
-            </button>
-            <button className="a-btn p" type="submit" disabled={create.isPending}>
-              {create.isPending ? 'Yaratilmoqda…' : 'Yaratish'}
-            </button>
-          </div>
+        </div>
+
+        <div className="a-rot-foot">
+          {err ? <div className="a-err" style={{ margin: 0, flex: '1 1 100%' }}>{err}</div> : null}
+          <span className="muted" style={{ fontSize: 12.5, marginRight: 'auto' }}>
+            {picked.length < 2 ? `Yana ${2 - picked.length} ta landing kerak` : `${picked.length} ta landing navbatda`}
+          </span>
+          <button className="a-btn" type="button" onClick={onClose}>
+            Bekor qilish
+          </button>
+          <button className="a-btn p" type="submit" disabled={create.isPending || picked.length < 2}>
+            {create.isPending ? 'Yaratilmoqda…' : 'Yaratish'}
+          </button>
         </div>
       </form>
     </div>

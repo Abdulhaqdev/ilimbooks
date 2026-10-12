@@ -1066,8 +1066,41 @@ textarea.a-in { resize: vertical; min-height: 44px; line-height: 1.5; font: inhe
   .a-vactions { margin-left: 0; }
 }
 
-/* --- Landing tanlash ro'yxati (rotatsiya yaratishda) --- */
-.a-pick { margin-top: 10px; max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; }
+/* --- Landing tanlash (rotatsiya yaratishda) --- */
+.a-rot-modal {
+  width: min(680px, 100%); max-height: min(88vh, 780px);
+  display: flex; flex-direction: column; padding: 0; overflow: hidden;
+}
+.a-rot-head { padding: 22px 24px 16px; border-bottom: 1px solid var(--line); }
+.a-rot-body { padding: 18px 24px; overflow-y: auto; }
+.a-rot-foot {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 24px; border-top: 1px solid var(--line); background: var(--panel-2);
+}
+/* grid ichidagi maydonlar modalni kengaytirib yubormasin */
+.a-grid-2 > *, .a-grid-3 > * { min-width: 0; }
+
+.a-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.a-chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  padding: 4px 6px 4px 8px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  background: var(--primary-soft); color: var(--primary-text); border: 1px solid transparent;
+}
+.a-chip b {
+  display: grid; place-items: center; width: 16px; height: 16px; flex-shrink: 0;
+  border-radius: 50%; background: var(--primary); color: #fff; font-size: 10px; font-weight: 800;
+}
+.a-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a-chip button {
+  display: grid; place-items: center; width: 18px; height: 18px; flex-shrink: 0; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.65;
+}
+.a-chip button:hover { opacity: 1; background: rgba(0, 0, 0, 0.12); }
+
+.a-pick {
+  margin-top: 10px; max-height: 290px; overflow-y: auto; overflow-x: hidden;
+  border: 1px solid var(--line); border-radius: 12px;
+}
 .a-pick-row {
   display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 11px;
   background: transparent; border: 0; border-bottom: 1px solid var(--line); cursor: pointer; text-align: left;
@@ -1075,13 +1108,17 @@ textarea.a-in { resize: vertical; min-height: 44px; line-height: 1.5; font: inhe
 .a-pick-row:last-child { border-bottom: 0; }
 .a-pick-row:hover { background: var(--panel-2); }
 .a-pick-row.on { background: var(--primary-soft); }
+.a-pick-box {
+  display: grid; place-items: center; width: 19px; height: 19px; flex-shrink: 0;
+  border: 1.5px solid var(--line-strong); border-radius: 6px; color: #fff; background: transparent;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+.a-pick-row.on .a-pick-box { background: var(--primary); border-color: var(--primary); }
 .a-pick-img { width: 34px; height: 34px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: var(--panel-2); }
 .a-pick-img img { width: 100%; height: 100%; object-fit: cover; }
 .a-pick-t { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .a-pick-t b { font-size: 13.5px; font-weight: 650; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.a-pick-t small { font-size: 11.5px; color: var(--muted); }
-.a-pick-mark { color: var(--primary-text); flex-shrink: 0; }
-.a-rot-modal { max-width: 640px; }
+.a-pick-t small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* --- Bo'sh holat --- */
 .a-empty {
@@ -1097,3 +1134,27 @@ textarea.a-in { resize: vertical; min-height: 44px; line-height: 1.5; font: inhe
 .a-stat4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 @media (max-width: 900px) { .a-stat4 { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px) { .a-stat4 { grid-template-columns: 1fr; } }
+
+/* Tanlash ro'yxati sarlavhasi — yorliq tugmani pastga itarmasin */
+.a-pick-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.a-pick-head b { font-size: 12.5px; color: var(--muted); font-weight: 600; min-width: 0; }
+
+/* Modal grid elementi sifatida min-content kengligigacha cho'zilib ketmasin
+   (grid/flex elementlarida min-width: auto standart — kichik ekranda toshib ketadi) */
+.a-modal { min-width: 0; }
+.a-rot-modal, .a-rot-body, .a-rot-head, .a-rot-foot { min-width: 0; }
+.a-prefix { min-width: 0; }
+.a-prefix span { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 560px) {
+  .a-modal-back { padding: 12px; }
+  .a-rot-head { padding: 18px 16px 14px; }
+  .a-rot-body { padding: 16px; }
+  .a-rot-foot { padding: 12px 16px; }
+  .a-rot-foot span { flex: 1 1 100%; margin-right: 0 !important; }
+  .a-rot-foot .a-btn { flex: 1; justify-content: center; }
+}
+
+/* Forma elementlari ham min-content kengligiga cho'zilmasin */
+.a-f > * { min-width: 0; }
+.a-rot-body { overflow-x: hidden; }
+.a-chips { min-width: 0; }
