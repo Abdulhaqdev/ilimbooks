@@ -1,0 +1,332 @@
+import { DEFAULT_CONTENT, type Faq, type LandingContent, type Template } from './landing-content';
+
+export type ZiyoItem = {
+  offerId: number;
+  slug: string;
+  name: string;
+  category: string;
+  template: Template;
+  payout: string;
+  content: LandingContent;
+};
+
+const PAY: Faq = {
+  q: 'To‘lov qanday amalga oshiriladi?',
+  a: 'Oldindan to‘lov yo‘q. Mahsulotni qo‘lingizga olib, ko‘rib, keyin kuryerga to‘laysiz.',
+};
+const DELIVERY: Faq = {
+  q: 'Qanday yetkazib beriladi?',
+  a: 'Buyurtmadan so‘ng operator qo‘ng‘iroq qilib, manzil va yetkazish vaqtini kelishadi.',
+};
+const ORDER: Faq = {
+  q: 'Buyurtma qanday beriladi?',
+  a: 'Formaga ismingiz va telefon raqamingizni yozing — operator qo‘ng‘iroq qilib, buyurtmani tasdiqlaydi.',
+};
+
+const num = (s: string) => Number(s.replace(/\D/g, '')) || 0;
+
+function item(i: {
+  id: number;
+  slug: string;
+  template: Template;
+  category: string;
+  title: string;
+  subtitle: string;
+  priceNew: string;
+  priceOld?: string;
+  payout?: string;
+  images?: string[];
+}): ZiyoItem {
+  const pct = i.priceOld && num(i.priceOld) ? Math.round((1 - num(i.priceNew) / num(i.priceOld)) * 100) : 0;
+  const plain = i.title.replace(/[«»"]/g, '');
+  const content: LandingContent = {
+    ...DEFAULT_CONTENT,
+    brand: 'ilimbooks.uz',
+    title: plain.toUpperCase(),
+    subtitle: i.subtitle,
+    images: i.images?.length ? i.images : [],
+    marquee: `✦ ${plain.toUpperCase()} · 🔥 ${pct ? `-${pct}% AKSIYA` : 'AKSIYA'} · 🚚 YETKAZIB BERISH · 💵 QO‘LGA OLIB TO‘LASH`,
+    hitBadge: pct ? `-${pct}%` : '',
+    chips: ['📖 Kitob', '💵 Qo‘lga olib to‘lash', '📞 Operator bog‘lanadi'],
+    rating: '',
+    reviewsCount: '',
+    priceOld: i.priceOld || '',
+    priceNew: i.priceNew,
+    currency: 'so‘m',
+    timerLabel: 'Aksiya narxi',
+    urgency: 'Aksiya narxida buyurtma bering — operator qo‘ng‘iroq qilib, tasdiqlaydi',
+    formTitle: 'Buyurtma berish',
+    formSubtitle: 'Ism va raqamingizni qoldiring — operator qo‘ng‘iroq qilib, buyurtmani tasdiqlaydi',
+    ctaText: 'Buyurtma berish',
+    trust: ['🚚 Yetkazib berish', '💵 Qo‘lga olib to‘lash', '📞 Operator bog‘lanadi'],
+    successTitle: 'Buyurtmangiz qabul qilindi!',
+    successText: 'Operatorimiz tez orada qo‘ng‘iroq qilib, manzilni aniqlashtiradi. Rahmat!',
+    benefitsTitle: 'Nega aynan shu?',
+    benefits: [],
+    guaranteeTitle: 'Xavfsiz xarid',
+    guaranteeText: 'Oldindan to‘lov yo‘q: mahsulotni qo‘lingizga olib, ko‘rib, keyin to‘laysiz.',
+    footerText: '© 2026 ilimbooks.uz — foydali kitoblar.',
+    seoTitle: `${plain} — aksiya narxida`,
+    seoDescription: `${i.subtitle} Aksiya: ${i.priceNew} so‘m.`,
+    reviews: [],
+    faq: [PAY, DELIVERY, ORDER],
+    bundle: [],
+    problemTitle: '',
+    problems: [],
+    stockLeft: '',
+    videoUrl: '',
+    accent: '',
+  };
+  return {
+    offerId: i.id,
+    slug: i.slug,
+    name: plain,
+    category: i.category,
+    template: i.template,
+    payout: i.payout || '',
+    content,
+  };
+}
+
+/** Ziyomarket (ziyomarket.uz) CPA katalogi — faqat shablon; landing admin tanlab yaratadi. */
+export const ZIYOMARKET_CATALOG: ZiyoItem[] = [
+  item({
+    id: 22,
+    slug: 'muqaddima',
+    template: 'compact',
+    category: 'Diniy kitoblar',
+    title: 'Muqaddima',
+    subtitle: '📚 MUQADDIMA — TAFAKKURINGIZNI YANGI BOSQICHGA OLIB CHIQING! 📖 Muallif: Ibn Xaldun 🏛 Nashriyot: Tirilish 📕 Muqova: Yumshoq 📄 Hajmi: 400 bet (',
+    priceNew: '109 000',
+    priceOld: '199 009',
+    payout: '45 000',
+    images: ['/t/ziyo/22.webp'],
+  }),
+  item({
+    id: 21,
+    slug: 'soyali-quron-daftari',
+    template: 'compact',
+    category: 'Diniy kitoblar',
+    title: 'soyali quron daftari',
+    subtitle: 'Qur’on yozishni o‘rganish uchun maxsus tayyorlangan soyali Qur’oni Karim.',
+    priceNew: '119 000',
+    priceOld: '199 000',
+    payout: '45 000',
+    images: ['/t/ziyo/21.webp'],
+  }),
+  item({
+    id: 20,
+    slug: 'katta-tajvidli-musaf-quroni-karim',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'Katta Tajvidli Musaf Quroni karim',
+    subtitle: 'Eng katta Tajvidli musaf Quron karim kitobi Al-Qur\'an al-Karim tajvid qoidalari bilan bezatilgan mushaf (Tajvidli Mushaf).',
+    priceNew: '299 000',
+    priceOld: '499 000',
+    payout: '50 000',
+    images: ['/t/ziyo/20.webp'],
+  }),
+  item({
+    id: 19,
+    slug: 'mukammal-saodat-yoli',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'mukammal saodat yoli',
+    subtitle: '"Mukammal saodat yo\'li" kitobi Shayx Muhammad Sodiq Muhammad Yusuf hazratlarining eng sara asarlaridan biri hisoblanadi.',
+    priceNew: '149 000',
+    priceOld: '199 000',
+    payout: '45 000',
+    images: ['/t/ziyo/19.webp'],
+  }),
+  item({
+    id: 18,
+    slug: 'qur-oni-karim-sozma-soz-tarjima',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'Qur’oni Karim Sozma soz tarjima',
+    subtitle: 'So\'zma-so\'z Qur\'on tarjimasi - Qur\'oni Karimni chuqurroq tushunish istagidagilar uchun ajoyib tanlov!',
+    priceNew: '299 000',
+    priceOld: '399 000',
+    payout: '50 000',
+  }),
+  item({
+    id: 17,
+    slug: 'faqat-erkaklar-uchun',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'Faqat erkaklar uchun',
+    subtitle: 'Tovar haqida Muqova: Qattiq • "Siz ham sahobiyasiz" - Sahifasi: 256 bet * "Faqat erkaklar uchun" - Sahifasi: 286 bet Atham Sharqoviyning 6ta',
+    priceNew: '129 000',
+    priceOld: '199 000',
+    payout: '45 000',
+    images: ['/t/ziyo/17.webp'],
+  }),
+  item({
+    id: 16,
+    slug: 'saodat-asri',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'Saodat asri',
+    subtitle: 'Muallif: Ahmad Lutfiy Qozonchi To‘plam: I, II, III, IV kitoblar Til: O‘zbek tilida «Saodat asri qissalari» — Islom tarixining eng ulug‘ davr',
+    priceNew: '269 000',
+    priceOld: '399 000',
+    payout: '50 000',
+    images: ['/t/ziyo/16.webp'],
+  }),
+  item({
+    id: 15,
+    slug: 'katta-tajvidli-qur-on',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'Katta Tajvidli Qur’on',
+    subtitle: 'Katta hajimdagi Tajvidli Qur’on Ranglari 4-xildagi rang Qizil Ko’k Pushti Oq Tajvidlik katta hajimdagi quron hajmi 25x35 sm',
+    priceNew: '299 000',
+    priceOld: '599 000',
+    payout: '55 000',
+    images: ['/t/ziyo/15.webp'],
+  }),
+  item({
+    id: 14,
+    slug: 'yaxshilik-va-silai-rahm-kitobi',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'Yaxshilik va silai rahm kitobi',
+    subtitle: 'Asl muallif: Hijriy 246-yilda vafot etgan buyuk Movarounnahr ulamolaridan biri - Husayn ibn Hasan Marvaziy rahmatullohi alayh.',
+    priceNew: '199 000',
+    priceOld: '299 000',
+    payout: '45 000',
+    images: ['/t/ziyo/14.webp'],
+  }),
+  item({
+    id: 13,
+    slug: 'rizq-kaliti',
+    template: 'compact',
+    category: 'Diniy kitoblar',
+    title: 'Rizq kaliti',
+    subtitle: 'Mugova: Qattiq Til: O\'zbek (Kirill) Bichimi: 84x108 1/32 Hajmi: 312 bet & Rizq kalitlari / Ризк, калитлари - Halol mehnat va dular bilan och',
+    priceNew: '99 000',
+    priceOld: '139 000',
+    payout: '40 000',
+    images: ['/t/ziyo/13.webp'],
+  }),
+  item({
+    id: 12,
+    slug: '19-talik-to-plam-darslik-uchun',
+    template: 'bundle',
+    category: 'Bolalar uchun',
+    title: '19 talik to’plam darslik uchun',
+    subtitle: 'Farzandingizning ijodkorligi va bilimini rivojlantiruvchi ajoyib to‘plam!',
+    priceNew: '149 000',
+    priceOld: '299 000',
+    payout: '40 000',
+    images: ['/t/ziyo/12.webp'],
+  }),
+  item({
+    id: 11,
+    slug: 'baxtga-yollanma',
+    template: 'compact',
+    category: 'Diniy kitoblar',
+    title: 'Baxtga Yollanma',
+    subtitle: 'Risolat at-tanbih ala sabil as-sa\'da" ("Baxt yo\'liga ogohlantirish risolasi") asari Ikkinchi muallim - Farobiy qurgan axloqiy tizimning must',
+    priceNew: '99 000',
+    priceOld: '139 000',
+    payout: '40 000',
+    images: ['/t/ziyo/11.webp'],
+  }),
+  item({
+    id: 10,
+    slug: 'mushkambarlik-quron',
+    template: 'premium',
+    category: 'Diniy kitoblar',
+    title: 'Mushkambarlik Quron',
+    subtitle: 'Muqovasi: Yuqori sifatli tabiiy charm, qo’lda ishlangan bo’rtma islimiy naqshlar bilan bezatilgan.',
+    priceNew: '2 250 000',
+    priceOld: '2 990 000',
+    payout: '200 000',
+  }),
+  item({
+    id: 9,
+    slug: 'islom-psixologiyasi',
+    template: 'compact',
+    category: 'Diniy kitoblar',
+    title: 'Islom psixologiyasi',
+    subtitle: 'Islom psixologiyasi fan sifatida insonning ruhiy dunyosi , his-tuyg\'ulari, xulq-atvori va shaxsiy rivojlanishini islom ta\'limoti asosida o\'r',
+    priceNew: '119 000',
+    priceOld: '149 000',
+    payout: '35 000',
+    images: ['/t/ziyo/9.webp'],
+  }),
+  item({
+    id: 8,
+    slug: 'daloilul-hayrot',
+    template: 'compact',
+    category: 'Diniy kitoblar',
+    title: 'Daloilul hayrot',
+    subtitle: 'Kitob haqida Rasululloh sollallohu alayhi vasallam aytdilar: “Jabroil alayhissalom mening huzurimga kelib: “Ey Muhammad, sizga biror kishi s',
+    priceNew: '99 000',
+    priceOld: '119 000',
+    payout: '35 000',
+    images: ['/t/ziyo/8.webp'],
+  }),
+  item({
+    id: 7,
+    slug: 'uchtalik-toplam-kitobi-usmon-nuriy-topbo',
+    template: 'bundle',
+    category: 'Diniy kitoblar',
+    title: 'Uchtalik toplam kitobi Usmon Nuriy Topboshi',
+    subtitle: 'Usmon Nuriy To‘pboshi – 3 kitob to‘plami 📖 To‘plam tarkibi: * Tengsiz namuna * Dunyo jannati * So‘nggi naïfs Ushbu uch kitob ma’naviy kamolo',
+    priceNew: '240 000',
+    priceOld: '399 000',
+    payout: '50 000',
+    images: ['/t/ziyo/7.webp'],
+  }),
+  item({
+    id: 5,
+    slug: 'al-quron-alijon-domla-audiolari',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'Al quron alijon domla audiolari',
+    subtitle: 'Al Qur\'an-Alijon qori ovozlari va Shayx hazratlari tarjimalarida 179,000 so\'m 299,000 so\'m «Қуръони Карим» (AL QURAN) Ўзбекистон мусулмонлар',
+    priceNew: '179 000',
+    priceOld: '299 000',
+    payout: '45 000',
+    images: ['/t/ziyo/5.webp'],
+  }),
+  item({
+    id: 4,
+    slug: 'nurul-qur-on',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'NURUL QUR’ON',
+    subtitle: '📖 Nurul Qur’on (O’zbekcha tarjimasi bilan) Muqaddas Qur’oni Karimning o’zbek tilidagi ma’no tarjimasi bilan nashr etilgan kitobi.',
+    priceNew: '299 000',
+    priceOld: '399 000',
+    payout: '55 000',
+    images: ['/t/ziyo/4.webp'],
+  }),
+  item({
+    id: 3,
+    slug: 'al-qur-on',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'AL QUR’ON',
+    subtitle: 'Har bir musulmon xonadonining eng qimmatli ne’mati bo’lgan Al Qur’on – Alloh taoloning insoniyatga nozil qilgan hidoyat kitobidir.',
+    priceNew: '199 000',
+    priceOld: '299 000',
+    payout: '45 000',
+    images: ['/t/ziyo/3.webp'],
+  }),
+  item({
+    id: 1,
+    slug: 'soyali-qur-on',
+    template: 'full',
+    category: 'Diniy kitoblar',
+    title: 'SOYALI QUR’ON',
+    subtitle: 'Qur’on yozishni o‘rganish uchun maxsus tayyorlangan soyali Qur’oni Karim.',
+    priceNew: '169 000',
+    priceOld: '299 000',
+    payout: '45 000',
+    images: ['/t/ziyo/1.webp'],
+  }),
+];
+

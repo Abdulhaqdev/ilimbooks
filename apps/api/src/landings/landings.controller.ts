@@ -66,15 +66,14 @@ export class LandingsController {
     const l = await this.landings.getPublicByPath(path);
     if (l) return l;
 
-    const probe = await this.rotations.resolvePublic(path);
-    if (!probe) throw new NotFoundException('Sahifa topilmadi');
-    const cookieName = variantCookieName(probe.rotationId);
-    const assigned = req.cookies?.[cookieName] as string | undefined;
-    const picked = assigned
-      ? (await this.rotations.resolvePublic(path, assigned)) || probe
-      : probe;
+    const picked = await this.rotations.resolvePublic(
+      path,
+      (req.cookies as Record<string, string>) || {},
+    );
+    if (!picked) throw new NotFoundException('Sahifa topilmadi');
 
-    res.cookie(cookieName, picked.landingId, {
+    res.setHeader('Cache-Control', 'no-store');
+    res.cookie(variantCookieName(picked.rotationId), picked.landingId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

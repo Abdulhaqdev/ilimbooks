@@ -335,6 +335,9 @@ export class LandingsService implements OnModuleInit {
     if (taken && taken.id !== selfId) {
       throw new ConflictException(`"${slugToPath(slug)}" manzili boshqa landingda ishlatilgan`);
     }
+    if (slug && (await this.prisma.rotation.findUnique({ where: { slug } }))) {
+      throw new ConflictException(`"${slugToPath(slug)}" manzili rotatsiyada ishlatilgan`);
+    }
     return slug;
   }
 }

@@ -13,10 +13,11 @@ import {
   IconTrendUp,
 } from '../components/icons';
 import { Select } from '../components/Select';
+import { TemplateBadge, TemplatePicker } from '../components/TemplatePicker';
 import { Toggle, useConfirm, useToast } from '../components/ui';
 import { api, formatNum } from '../lib/api';
 import { imgSrc, landingUrl, normSlug, templateLabel, type Landing } from '../lib/landings';
-import type { RotationStats, VariantStat } from '../lib/rotations';
+import { ROTATION_MODES, type RotationStats, type VariantStat } from '../lib/rotations';
 import { useTime } from '../lib/time';
 
 function Bar({ value, max, tone }: { value: number; max: number; tone: string }) {
@@ -37,6 +38,8 @@ export default function RotationEdit() {
   const [adding, setAdding] = useState('');
   const [renaming, setRenaming] = useState<{ name: string; slug: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [tplBase, setTplBase] = useState('');
+  const [tplPick, setTplPick] = useState<string[]>([]);
 
   const q = useQuery({
     queryKey: ['rotation', id, t.keyPart],
@@ -69,10 +72,10 @@ export default function RotationEdit() {
   });
 
   const setVariant = useMutation({
-    mutationFn: (v: { variantId: string; active: boolean }) =>
-      api(`/api/admin/rotations/${id}/variants/${v.variantId}`, {
+    mutationFn: ({ variantId, ...body }: { variantId: string; active?: boolean; weight?: number }) =>
+      api(`/api/admin/rotations/${id}/variants/${variantId}`, {
         method: 'PATCH',
-        body: JSON.stringify({ active: v.active }),
+        body: JSON.stringify(body),
       }),
     onSuccess: refresh,
     onError: fail,
@@ -102,6 +105,18 @@ export default function RotationEdit() {
     onError: fail,
   });
 
+  const addTemplates = useMutation({
+    mutationFn: (v: { landingId: string; templates: string[] }) =>
+      api(`/api/admin/rotations/${id}/template-variants`, { method: 'POST', body: JSON.stringify(v) }),
+    onSuccess: (_d, v) => {
+      refresh();
+      qc.invalidateQueries({ queryKey: ['landings'] });
+      setTplPick([]);
+      toast.ok(`${v.templates.length} ta shablon qo‘shildi`);
+    },
+    onError: fail,
+  });
+
   const removeVariant = useMutation({
     mutationFn: (variantId: string) =>
       api(`/api/admin/rotations/${id}/variants/${variantId}`, { method: 'DELETE' }),
@@ -122,6 +137,10 @@ export default function RotationEdit() {
   }
 
   const { totals, variants, winner, enough } = q.data;
+  const liveVariants = variants.filter((v) => v.active && v.landingActive);
+  const liveTemplates = new Set(liveVariants.map((v) => v.template));
+  const usedTemplates = [...new Set(variants.map((v) => v.template))];
+  const baseId = tplBase || variants[0]?.landingId || '';
   const maxSessions = Math.max(1, ...variants.map((v) => v.sessions));
   const maxCr = Math.max(1, ...variants.map((v) => v.cr));
 
@@ -219,6 +238,72 @@ export default function RotationEdit() {
         </label>
       </div>
 
+      <div className="a-choice a-rmode" style={{ marginTop: 16 }}>
+        {ROTATION_MODES.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            className={rot.mode === m.id ? 'on' : undefined}
+            disabled={patch.isPending}
+            onClick={() => rot.mode !== m.id && patch.mutate({ mode: m.id })}
+          >
+            <strong>{m.label}</strong>
+            <span>{m.hint}</span>
+          </button>
+        ))}
+      </div>
+
+      {liveVariants.length < 2 ? (
+        <div className="a-note warn" style={{ marginTop: 12 }}>
+          Hozir faqat {liveVariants.length} ta variant ko‘rsatilyapti — havola almashmaydi. Kamida 2 ta variantni yoqing
+          (landingning o‘zi ham yoqilgan bo‘lishi kerak).
+        </div>
+      ) : liveTemplates.size === 1 ? (
+        <div className="a-note warn" style={{ marginTop: 12 }}>
+          Ko‘rsatilayotgan variantlarning hammasi “{templateLabel([...liveTemplates][0])}” shablonida — dizayn
+          almashmaydi. Pastdagi “Boshqa shablon qo‘shish” orqali yangi shablon qo‘shing.
+        </div>
+      ) : null}
+
+      <div className={rot.autoWinner ? 'a-panel a-auto on' : 'a-panel a-auto'}>
+        <div className="a-auto-main">
+          <span className="a-auto-ic">
+            <IconTrendUp size={18} />
+          </span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <b>Avtomatik g‘olib</b>
+            <p>
+              Har bir variantga kamida {rot.autoMinViews} ta ko‘rish yig‘ilgach, konversiyasi yetakchidan aniq (~95%
+              ishonch bilan) past bo‘lganlari o‘zi o‘chiriladi. Yetakchi doim qoladi. O‘chirilgan variantni qayta
+              yoqsangiz, uning hisobi noldan boshlanadi.
+            </p>
+          </div>
+          <Toggle
+            checked={rot.autoWinner}
+            disabled={patch.isPending}
+            onChange={(on) => patch.mutate({ autoWinner: on })}
+          />
+        </div>
+        {rot.autoWinner ? (
+          <div className="a-row" style={{ margin: '10px 0 0', gap: 8 }}>
+            <span className="muted" style={{ fontSize: 12.5 }}>Har variantga kamida</span>
+            <div className="a-seg">
+              {[50, 100, 200, 500].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={rot.autoMinViews === n ? 'on' : ''}
+                  onClick={() => rot.autoMinViews !== n && patch.mutate({ autoMinViews: n })}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <span className="muted" style={{ fontSize: 12.5 }}>ko‘rish</span>
+          </div>
+        ) : null}
+      </div>
+
       <div className="a-stat4" style={{ marginTop: 18 }}>
         <div className="a-card">
           <div className="a-card-k">Ko‘rishlar</div>
@@ -248,7 +333,7 @@ export default function RotationEdit() {
       <div className="a-panel" style={{ marginTop: 18 }}>
         <div className="a-panel-h">
           <span>Variantlar — qaysi landing ko‘proq sotyapti</span>
-          <small className="muted">Navbat shu tartibda aylanadi</small>
+          <small className="muted">“×” — trafik ulushi: 2× variant 1× dan ikki barobar ko‘p ko‘rsatiladi</small>
         </div>
         <div className="a-vlist">
           {variants.map((v, i) => {
@@ -292,9 +377,43 @@ export default function RotationEdit() {
                     ) : null}
                     {!v.landingActive ? <span className="a-pill bad">landing o‘chiq</span> : null}
                   </div>
-                  <small className="muted">
-                    {v.path} · {templateLabel(v.template)}
-                  </small>
+                  <div className="a-row" style={{ margin: '3px 0 0', gap: 6 }}>
+                    <TemplateBadge t={v.template} label={templateLabel(v.template)} />
+                    <a className="muted a-vpath" href={landingUrl(v.path)} target="_blank" rel="noreferrer" title="Shu variantni ochish">
+                      {v.path} <IconExternal size={11} />
+                    </a>
+                  </div>
+                  {!v.active && v.autoOffAt ? (
+                    <div className="a-vauto">
+                      Avtomatik o‘chirildi · {new Date(v.autoOffAt).toLocaleDateString('uz-UZ')}
+                      <small>{v.autoOffNote}</small>
+                    </div>
+                  ) : null}
+                  {v.active && rot.autoWinner && v.freshViews < rot.autoMinViews ? (
+                    <div className="a-vprog" title="Avtomatik g‘olib baholashigacha">
+                      <span style={{ width: `${Math.round((v.freshViews / rot.autoMinViews) * 100)}%` }} />
+                      <small>
+                        {v.freshViews}/{rot.autoMinViews} ko‘rish — baholashgacha
+                      </small>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="a-vshare" title="Trafik ulushi — shu variantga ketadigan tashrifchilar">
+                  <b>{v.share}%</b>
+                  <select
+                    aria-label="Trafik ulushi"
+                    value={v.weight}
+                    disabled={setVariant.isPending}
+                    onChange={(e) => setVariant.mutate({ variantId: v.id, weight: Number(e.target.value) })}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => (
+                      <option key={n} value={n}>
+                        {n}×
+                      </option>
+                    ))}
+                  </select>
+                  <span>ulush</span>
                 </div>
 
                 <div className="a-vmetrics">
@@ -341,7 +460,37 @@ export default function RotationEdit() {
           })}
         </div>
 
+        <div className="a-panel-b a-radd">
+          <div className="a-step">
+            <IconPlus size={14} /> Boshqa shablon qo‘shish
+          </div>
+          <div style={{ maxWidth: 420, marginBottom: 10 }}>
+            <Select
+              block
+              ariaLabel="Qaysi variantdan nusxa olinsin"
+              value={baseId}
+              onChange={setTplBase}
+              options={variants.map((v) => ({ value: v.landingId, label: v.name, hint: templateLabel(v.template) }))}
+            />
+          </div>
+          <TemplatePicker value={tplPick} onChange={setTplPick} hidden={[...usedTemplates, 'reviews']} />
+          <div className="a-row" style={{ margin: '10px 0 0' }}>
+            <button
+              className="a-btn p"
+              type="button"
+              disabled={!tplPick.length || !baseId || addTemplates.isPending}
+              onClick={() => addTemplates.mutate({ landingId: baseId, templates: tplPick })}
+            >
+              {addTemplates.isPending ? 'Qo‘shilmoqda…' : `${tplPick.length || ''} ta shablonni qo‘shish`}
+            </button>
+            <span className="a-hint" style={{ margin: 0 }}>
+              Tanlangan variantning matn va rasmlari bilan yangi shablonli nusxa yaratiladi.
+            </span>
+          </div>
+        </div>
+
         <div className="a-panel-b">
+          <div className="a-step">Tayyor landingni qo‘shish</div>
           <div className="a-row" style={{ margin: 0, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 230, flex: 1 }}>
               <Select
@@ -351,7 +500,7 @@ export default function RotationEdit() {
                 onChange={setAdding}
                 options={[
                   { value: '', label: 'Landing tanlang…' },
-                  ...free.map((l) => ({ value: l.id, label: l.name, hint: l.path })),
+                  ...free.map((l) => ({ value: l.id, label: l.name, hint: `${templateLabel(l.template)} · ${l.path}` })),
                 ]}
               />
             </div>

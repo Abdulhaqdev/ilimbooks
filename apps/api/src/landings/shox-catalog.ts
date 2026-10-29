@@ -24,7 +24,7 @@ const PAY: Faq = {
 };
 const DELIVERY: Faq = {
   q: 'Qanday yetkazib beriladi?',
-  a: 'Buyurtmadan so‘ng operator qo‘ng‘iroq qilib, manzil va yetkazish vaqtini kelishib oladi. Yetkazib berish bepul.',
+  a: 'Buyurtmadan so‘ng operator qo‘ng‘iroq qilib, manzil va yetkazish vaqtini kelishib oladi.',
 };
 const ORDER: Faq = {
   q: 'Buyurtma qanday beriladi?',
@@ -41,7 +41,7 @@ function item(i: Input): CatalogItem {
     ...DEFAULT_CONTENT,
     brand: 'ilimbooks.uz',
     images: [`/t/shox/${id}.webp`],
-    marquee: `✦ ${plain.toUpperCase()} · 🔥 ${pct ? `-${pct}% AKSIYA` : 'AKSIYA'} · 🚚 BEPUL YETKAZISH · 💵 QO‘LGA OLIB TO‘LASH`,
+    marquee: `✦ ${plain.toUpperCase()} · 🔥 ${pct ? `-${pct}% AKSIYA` : 'AKSIYA'} · 🚚 YETKAZIB BERISH · 💵 QO‘LGA OLIB TO‘LASH`,
     hitBadge: pct ? `-${pct}%` : '',
     rating: '',
     reviewsCount: '',
@@ -51,14 +51,14 @@ function item(i: Input): CatalogItem {
     formTitle: 'Buyurtma berish',
     formSubtitle: 'Ism va raqamingizni qoldiring — operator qo‘ng‘iroq qilib, buyurtmani tasdiqlaydi',
     ctaText: 'Buyurtma berish',
-    trust: ['🚚 Bepul yetkazish', '💵 Qo‘lga olib to‘lash', '📞 Operator bog‘lanadi'],
+    trust: ['🚚 Yetkazib berish', '💵 Qo‘lga olib to‘lash', '📞 Operator bog‘lanadi'],
     successTitle: 'Buyurtmangiz qabul qilindi!',
     successText: 'Operatorimiz tez orada qo‘ng‘iroq qilib, manzilni aniqlashtiradi. Rahmat!',
     guaranteeTitle: 'Xavfsiz xarid',
     guaranteeText: 'Oldindan to‘lov yo‘q: mahsulotni qo‘lingizga olib, ko‘rib, keyin to‘laysiz.',
     footerText: '© 2026 ilimbooks.uz — foydali kitoblar va sovg‘alar.',
     seoTitle: `${plain} — aksiya narxida`,
-    seoDescription: `${i.subtitle} Aksiya: ${i.priceNew} so‘m. Bepul yetkazish, qo‘lga olib to‘lash.`,
+    seoDescription: `${i.subtitle} Aksiya: ${i.priceNew} so‘m. Qo‘lga olib to‘lash.`,
     reviews: [],
     faq: [PAY, DELIVERY, ORDER],
     bundle: [],

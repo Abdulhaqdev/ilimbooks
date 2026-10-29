@@ -24,7 +24,7 @@ export default function TMinimal({ content: c, preview }: TemplateProps) {
       <div className="tpl-in">
         <header className="mn-bar">
           <b>{c.brand}</b>
-          <span className="mn-dl">🚚 Bepul yetkazish</span>
+          <span className="mn-dl">🚚 Yetkazib berish</span>
         </header>
 
         <section className="mn-gal">
@@ -93,7 +93,7 @@ export default function TMinimal({ content: c, preview }: TemplateProps) {
             <span>🚚</span>
             <p>
               <b>Yetkazib berish</b>
-              <small>Bepul · 1–3 kun ichida</small>
+              <small>1–3 kun ichida</small>
             </p>
           </div>
           <div>

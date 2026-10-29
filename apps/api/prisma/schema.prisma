@@ -131,6 +131,12 @@ model Rotation {
   slug      String            @unique
   name      String
   active    Boolean           @default(true)
+  /// "visit" — har ochilishda keyingi variant; "sticky" — bir tashrifchiga doim bitta variant
+  mode      String            @default("visit")
+  /// Yutqazayotgan variantlarni statistik ishonch bilan avtomatik o'chirish
+  autoWinner   Boolean        @default(false)
+  /// Har variantga kamida shuncha ko'rish yig'ilgach baholanadi
+  autoMinViews Int            @default(100)
   /// Navbat hisoblagichi: har yangi tashrifchiga keyingi variant beriladi
   cursor    Int               @default(0)
   createdAt DateTime          @default(now())
@@ -149,6 +155,13 @@ model RotationVariant {
   landing    Landing  @relation(fields: [landingId], references: [id], onDelete: Cascade)
   active     Boolean  @default(true)
   sortOrder  Int      @default(0)
+  /// Trafik ulushi (nisbiy og'irlik, 1–100)
+  weight     Int      @default(1)
+  /// Avtomatik g'olib shu vaqtdan keyingi statistikani solishtiradi (qayta yoqilganda yangilanadi)
+  since      DateTime @default(now())
+  /// Avtomatik o'chirilgan bo'lsa — qachon va nega
+  autoOffAt   DateTime?
+  autoOffNote String   @default("")
   createdAt  DateTime @default(now())
 
   @@unique([rotationId, landingId])
@@ -169,20 +182,33 @@ model Lead {
   variant     String?
   offerId     String?
   stream      String?
-  status      String   @default("new") // new | sent | failed
+  status      String   @default("new") // new | sent | failed | duplicate
+  /// Birinchi (asl) lid id — status=duplicate bo‘lganda
+  duplicateOf String?
   shoxOk      Boolean  @default(false)
   shoxId      String?
   shoxMessage String?
+  /// Marketga uzatish urinishlari soni (avtomatik qayta yuborish uchun)
+  tries       Int      @default(1)
+  lastTryAt   DateTime?
   sid         String?
-  /// Tashrif buyuruvchi (httpOnly cookie) — buyurtmalar limitini hisoblash uchun
+  /// Tashrif buyuruvchi (httpOnly cookie) — takroriy lid tekshiruvi uchun
   vid         String?
   page        String?
   utmSource   String?
   utmMedium   String?
   utmCampaign String?
   utmContent  String?
+  utmTerm     String?
   referrer    String?
   ua          String?
+  /// Meta / ShoxMarket CAPI atributsiyasi
+  fbclid      String?
+  fbc         String?
+  fbp         String?
+  pageUrl     String?
+  clientIp    String?
+  eventId     String?
   createdAt   DateTime @default(now())
 
   @@index([createdAt])
@@ -190,4 +216,6 @@ model Lead {
   @@index([phone])
   @@index([vid])
   @@index([account])
+  @@index([offerId])
+  @@index([clientIp])
 }

@@ -1,4 +1,5 @@
 import { currentAccount, normalizePath } from './account';
+import { getMetaCookies } from './capi';
 import { trackMetaCta } from './pixel';
 
 type TrackEvent = {
@@ -15,13 +16,28 @@ let sid = '';
 let started = 0;
 let count = 0;
 let flushed = false;
+let variant = '';
+let perLoad = false;
 
 function clip(v: string, n: number) {
   return v.slice(0, n);
 }
 
+/**
+ * Rotatsiya sahifasida ko'rsatilgan landing. `perLoad` — har ochilishda variant almashadi,
+ * shuning uchun har ochilish alohida sessiya hisoblanadi.
+ */
+export function setVariant(v?: string, perLoadSession = false) {
+  variant = v ? clip(v, 64) : '';
+  perLoad = !!variant && perLoadSession;
+}
+
 export function getSid() {
   if (sid) return sid;
+  if (perLoad) {
+    sid = crypto.randomUUID?.() || Math.random().toString(36).slice(2);
+    return sid;
+  }
   try {
     const existing = sessionStorage.getItem('sp_sid');
     if (existing) {
@@ -36,21 +52,30 @@ export function getSid() {
   return sid;
 }
 
-export function getMeta() {
-  return meta();
+export function getMeta(extra: { eventId?: string } = {}) {
+  return meta(extra);
 }
 
-function meta() {
+function meta(extra: { eventId?: string } = {}) {
   const p = new URLSearchParams(location.search);
+  const { fbp, fbc } = getMetaCookies();
+  const fbclid = p.get('fbclid')?.slice(0, 512) || undefined;
   return {
     utmSource: p.get('utm_source')?.slice(0, 60) || undefined,
     utmMedium: p.get('utm_medium')?.slice(0, 60) || undefined,
     utmCampaign: p.get('utm_campaign')?.slice(0, 80) || undefined,
     utmContent: p.get('utm_content')?.slice(0, 80) || undefined,
+    utmTerm: p.get('utm_term')?.slice(0, 80) || undefined,
     referrer: document.referrer?.slice(0, 300) || undefined,
-    ua: navigator.userAgent.slice(0, 300),
+    ua: navigator.userAgent.slice(0, 512),
     page: normalizePath(location.pathname),
+    pageUrl: location.href.split('#')[0].slice(0, 1000),
     account: currentAccount(),
+    variant: variant || undefined,
+    fbclid,
+    fbp: fbp?.slice(0, 255) || undefined,
+    fbc: (fbc || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : '')).slice(0, 512) || undefined,
+    eventId: extra.eventId?.slice(0, 64) || undefined,
   };
 }
 
@@ -132,8 +157,9 @@ function bindTgCtaClicks() {
       track({ type: 'cta', elId: cta, elText: label });
       flush();
 
-      // Meta Pixel — landing sahifasi ochiq qoladi, event yo‘qolmaydi
-      trackMetaCta(a.dataset.fbEvent || 'Lead', cta);
+      // Meta: faqat data-fb-event berilgan bo‘lsa (default Lead emas — buyurtmasiz Lead shishmasin)
+      const fbEvent = a.dataset.fbEvent?.trim();
+      if (fbEvent) trackMetaCta(fbEvent, cta);
     },
     { capture: true },
   );

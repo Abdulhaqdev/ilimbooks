@@ -20,6 +20,7 @@ export type KnownMarket = { code: string; name: string; endpoint: string; panel:
 export const MARKET_NAME: Record<string, string> = {
   shoxmarket: 'ShoxMarket',
   amiram: 'Amiram',
+  ziyomarket: 'Ziyomarket',
 };
 
 export function marketName(code: string, fallback = '') {
@@ -30,6 +31,7 @@ export function marketName(code: string, fallback = '') {
 export const MARKET_PANEL: Record<string, string> = {
   shoxmarket: 'https://admin.shoxmarket.uz',
   amiram: 'https://admin.amiram.uz',
+  ziyomarket: 'https://admin.ziyomarket.uz',
 };
 
 export function marketPanel(code: string) {

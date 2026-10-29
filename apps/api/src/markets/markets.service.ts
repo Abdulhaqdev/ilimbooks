@@ -23,6 +23,7 @@ export type MarketInput = {
 export const KNOWN_MARKETS = [
   { code: 'shoxmarket', name: 'ShoxMarket', endpoint: 'https://api.shoxmarket.uz/create', panel: 'https://admin.shoxmarket.uz' },
   { code: 'amiram', name: 'Amiram', endpoint: 'https://api.Amiram.uz/create', panel: 'https://admin.amiram.uz' },
+  { code: 'ziyomarket', name: 'Ziyomarket', endpoint: 'https://api.ziyomarket.uz/create', panel: 'https://admin.ziyomarket.uz' },
 ] as const;
 
 /** API kaliti adminga to'liq ko'rsatilmaydi — faqat oxirgi 4 belgisi. */

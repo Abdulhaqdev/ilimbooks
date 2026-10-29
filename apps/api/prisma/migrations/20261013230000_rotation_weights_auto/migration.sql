@@ -1,0 +1,8 @@
+-- Rotatsiya: trafik ulushi va avtomatik g'olib
+ALTER TABLE "Rotation" ADD COLUMN "autoWinner" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Rotation" ADD COLUMN "autoMinViews" INTEGER NOT NULL DEFAULT 100;
+
+ALTER TABLE "RotationVariant" ADD COLUMN "weight" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "RotationVariant" ADD COLUMN "since" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "RotationVariant" ADD COLUMN "autoOffAt" TIMESTAMP(3);
+ALTER TABLE "RotationVariant" ADD COLUMN "autoOffNote" TEXT NOT NULL DEFAULT '';

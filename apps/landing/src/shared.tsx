@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { normalizePath } from './account';
+import { newEventId, sendCapiEvent } from './capi';
 import { initPixel, trackMetaCta } from './pixel';
-import { getMeta, getSid, initTracking, track } from './track';
+import { getMeta, getSid, initTracking, setVariant, track } from './track';
 
 export type Benefit = { icon: string; title: string; text: string };
 export type Review = { name: string; city: string; text: string; rating: number };
@@ -50,9 +51,17 @@ export type LandingData = {
   template: string;
   content: LandingContent;
   pixelId: string;
+  /** Rotatsiya havolasi bo'lsa — shu ochilishda ko'rsatilgan landing */
+  rotation?: { id: string; variant: string; variants: number; mode?: 'visit' | 'sticky' };
 };
 
 export type TemplateProps = { content: LandingContent; preview: boolean };
+
+declare global {
+  interface Window {
+    __ibLanding?: { path: string; data: Promise<LandingData | null>; used?: boolean };
+  }
+}
 
 export const IS_PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 if (IS_PREVIEW) document.documentElement.classList.add('ib-preview');
@@ -64,22 +73,32 @@ const ADMIN_ORIGINS = new Set(
   ),
 );
 
-export type OrderResult = { ok: boolean; message?: string };
+export type OrderResult = { ok: boolean; message?: string; duplicate?: boolean; forwarded?: boolean };
 
 /** Buyurtmani backendga yuboradi (backend ShoxMarket API'ga uzatadi). */
 export async function submitOrder(name: string, phone: string, preview = false): Promise<OrderResult> {
   if (preview) return { ok: true };
   try {
+    // Bitta event_id — Pixel, Meta CAPI va ShoxMarket uchun dedup
+    const eventId = newEventId();
     const res = await fetch('/api/order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, sid: getSid(), meta: getMeta() }),
+      body: JSON.stringify({ name, phone, sid: getSid(), meta: getMeta({ eventId }) }),
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok && data?.ok) {
       track({ type: 'cta', elId: 'order', elText: 'Buyurtma berish' });
-      trackMetaCta('Lead', 'order');
-      return { ok: true };
+      // Meta Lead faqat ShoxMarketga yetganda — CRM bilan bir xil hisob
+      if (data.forwarded) {
+        trackMetaCta('Lead', 'order', eventId);
+        sendCapiEvent({ eventName: 'Lead', eventId, contentName: 'order' });
+      }
+      return {
+        ok: true,
+        duplicate: Boolean(data.duplicate),
+        forwarded: Boolean(data.forwarded),
+      };
     }
     return { ok: false, message: data?.message || 'Xatolik yuz berdi' };
   } catch {
@@ -156,13 +175,22 @@ export function useLanding(pathname: string): State {
     if (IS_PREVIEW) return;
     let cancelled = false;
     setState({ status: 'loading' });
-    fetch(`/api/public/landing?path=${encodeURIComponent(normalizePath(pathname))}`)
-      .then((r) => (r.ok ? r.json() : null))
+    const path = normalizePath(pathname);
+    const load = () =>
+      fetch(`/api/public/landing?path=${encodeURIComponent(path)}`).then((r) => (r.ok ? r.json() : null));
+    // index.html'dagi erta so'rov. Rotatsiyada har so'rov keyingi variantni beradi,
+    // shuning uchun u faqat bir marta ishlatiladi.
+    const early = window.__ibLanding;
+    const fromEarly = Boolean(early && !early.used && early.path === path);
+    const source: Promise<LandingData | null> = fromEarly ? early!.data.catch(load) : load();
+    source
       .then((d: LandingData | null) => {
         if (cancelled) return;
+        if (fromEarly) early!.used = true;
         if (!d?.content) return setState({ status: 'missing' });
         setState({ status: 'ready', landing: d });
         applySeo(d.content);
+        setVariant(d.rotation?.variant, d.rotation?.mode !== 'sticky');
         initTracking();
         initPixel(d.pixelId);
       })

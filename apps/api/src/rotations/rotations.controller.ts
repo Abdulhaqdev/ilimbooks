@@ -70,11 +70,25 @@ export class RotationsController {
     return this.rotations.addVariant(id, String(body?.landingId || ''), await this.accounts.resolve(acc));
   }
 
+  @Post(':id/template-variants')
+  async addTemplateVariants(
+    @Param('id') id: string,
+    @Body() body: { landingId?: string; templates?: string[] },
+    @Query('acc') acc?: string,
+  ) {
+    return this.rotations.addTemplateVariants(
+      id,
+      String(body?.landingId || ''),
+      body?.templates,
+      await this.accounts.resolve(acc),
+    );
+  }
+
   @Patch(':id/variants/:variantId')
   async setVariant(
     @Param('id') id: string,
     @Param('variantId') variantId: string,
-    @Body() body: { active?: boolean },
+    @Body() body: { active?: boolean; weight?: number },
     @Query('acc') acc?: string,
   ) {
     return this.rotations.setVariant(id, variantId, body || {}, await this.accounts.resolve(acc));

@@ -10,6 +10,7 @@ import Landings from './pages/Landings';
 import Login from './pages/Login';
 import Orders from './pages/Orders';
 import RotationEdit from './pages/RotationEdit';
+import RotationNew from './pages/RotationNew';
 import Rotations from './pages/Rotations';
 import Reklama from './pages/Reklama';
 import Settings from './pages/Settings';
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="landings" element={<Landings />} />
             <Route path="landings/:id" element={<LandingEdit />} />
             <Route path="rotations" element={<Rotations />} />
+            <Route path="rotations/new" element={<RotationNew />} />
             <Route path="rotations/:id" element={<RotationEdit />} />
             <Route path="templates" element={<Templates />} />
             <Route path="templates/:market" element={<Templates />} />

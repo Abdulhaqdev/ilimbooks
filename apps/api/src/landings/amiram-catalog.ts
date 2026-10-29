@@ -30,7 +30,7 @@ const PAY: Faq = {
 };
 const DELIVERY: Faq = {
   q: 'Qanday yetkazib beriladi?',
-  a: 'Buyurtmadan so\u2018ng operator qo\u2018ng\u2018iroq qilib, manzil va vaqtni kelishadi. Yetkazib berish bepul.',
+  a: 'Buyurtmadan so\u2018ng operator qo\u2018ng\u2018iroq qilib, manzil va vaqtni kelishadi.',
 };
 
 type Input = {
@@ -61,9 +61,9 @@ function item(i: Input): AmiramItem {
     title: i.title,
     subtitle: i.subtitle,
     images: i.images,
-    marquee: `\u2726 ${plain.toUpperCase()} \u00b7 \ud83d\ude9a BEPUL YETKAZISH \u00b7 \ud83d\udcb5 QO\u2018LGA OLIB TO\u2018LASH`,
+    marquee: `\u2726 ${plain.toUpperCase()} \u00b7 \ud83d\ude9a YETKAZIB BERISH \u00b7 \ud83d\udcb5 QO\u2018LGA OLIB TO\u2018LASH`,
     hitBadge: '',
-    chips: i.chips ?? ['\ud83d\ude9a Bepul yetkazish', '\ud83d\udcb5 Qo\u2018lga olib to\u2018lash', '\ud83d\udcde Operator bog\u2018lanadi'],
+    chips: i.chips ?? ['\ud83d\ude9a Yetkazib berish', '\ud83d\udcb5 Qo\u2018lga olib to\u2018lash', '\ud83d\udcde Operator bog\u2018lanadi'],
     rating: '',
     reviewsCount: '',
     priceOld: '',
@@ -74,7 +74,7 @@ function item(i: Input): AmiramItem {
     formTitle: 'Buyurtma berish',
     formSubtitle: 'Ism va raqamingizni qoldiring \u2014 operator qo\u2018ng\u2018iroq qiladi',
     ctaText: 'Buyurtma berish',
-    trust: ['\ud83d\ude9a Bepul yetkazish', '\ud83d\udcb5 Qo\u2018lga olib to\u2018lash', '\u2705 Ko\u2018rib qabul qilasiz'],
+    trust: ['\ud83d\ude9a Yetkazib berish', '\ud83d\udcb5 Qo\u2018lga olib to\u2018lash', '\u2705 Ko\u2018rib qabul qilasiz'],
     successTitle: 'Buyurtmangiz qabul qilindi!',
     successText: 'Operatorimiz tez orada qo\u2018ng\u2018iroq qilib, manzilni aniqlashtiradi. Rahmat!',
     benefitsTitle: 'Nega aynan shu?',
@@ -83,7 +83,7 @@ function item(i: Input): AmiramItem {
     guaranteeText: 'Oldindan to\u2018lov yo\u2018q: mahsulotni qo\u2018lingizga olib, ko\u2018rib, keyin to\u2018laysiz.',
     footerText: '\u00a9 2026 ilimbooks.uz \u2014 yetkazib berish O\u2018zbekiston bo\u2018ylab.',
     seoTitle: `${plain} \u2014 ${i.price} so\u2018m`,
-    seoDescription: `${i.subtitle} Bepul yetkazish, qo\u2018lga olib to\u2018lash. Buyurtma uchun ism va telefon raqamingizni qoldiring.`,
+    seoDescription: `${i.subtitle} Qo\u2018lga olib to\u2018lash. Buyurtma uchun ism va telefon raqamingizni qoldiring.`,
     reviews: [],
     faq: [...i.faq, DELIVERY, PAY],
     bundle: i.bundle ?? [],

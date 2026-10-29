@@ -12,12 +12,31 @@ export type RotationVariant = {
   stream?: string;
 };
 
+/** visit — har ochilishda boshqa variant; sticky — bir tashrifchiga doim bitta variant */
+export type RotationMode = 'visit' | 'sticky';
+
+export const ROTATION_MODES: { id: RotationMode; label: string; hint: string }[] = [
+  {
+    id: 'visit',
+    label: 'Har ochilishda boshqa shablon',
+    hint: 'Havolani har ochganda navbatdagi variant chiqadi — o‘zingiz ham tekshira olasiz',
+  },
+  {
+    id: 'sticky',
+    label: 'Bir odamga bitta variant',
+    hint: 'Har yangi odamga navbatdagisi, qayta kirsa o‘sha — A/B natijasi aniqroq',
+  },
+];
+
 export type Rotation = {
   id: string;
   slug: string;
   path: string;
   name: string;
   active: boolean;
+  mode: RotationMode;
+  autoWinner: boolean;
+  autoMinViews: number;
   account: string;
   variants: RotationVariant[];
 };
@@ -28,6 +47,8 @@ export type RotationRow = {
   path: string;
   name: string;
   active: boolean;
+  mode: RotationMode;
+  templates: string[];
   total: number;
   live: number;
   images: string[];
@@ -51,6 +72,12 @@ export type VariantStat = {
   cr: number;
   avgDwellSec: number;
   avgScroll: number;
+  weight: number;
+  share: number;
+  freshViews: number;
+  freshLeads: number;
+  autoOffAt: string | null;
+  autoOffNote: string;
 };
 
 export type RotationStats = {

@@ -3,7 +3,7 @@ import { UAParser } from 'ua-parser-js';
 import { DEFAULT_ACCOUNT, normAccount } from '../common/account';
 import { LandingsService } from '../landings/landings.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { RotationsService, variantCookieName } from '../rotations/rotations.service';
+import { pickVariant, RotationsService } from '../rotations/rotations.service';
 
 type InEvent = {
   type: string;
@@ -22,6 +22,8 @@ type InMeta = {
   ua?: string;
   page?: string;
   account?: string;
+  /** Rotatsiya sahifasida brauzer ko'rsatgan landing (Landing.id) */
+  variant?: string;
 };
 
 /** kadr yo‘lini normalizatsiya qiladi */
@@ -89,9 +91,7 @@ export class EventsService {
       const probe = await this.rotations.resolveForTracking(page);
       if (probe) {
         account = normAccount(probe.rotation.account);
-        const assigned = cookies[variantCookieName(probe.rotation.id)];
-        const match = probe.rotation.variants.find((v) => v.landingId === assigned);
-        variant = match?.landingId ?? probe.landing?.id ?? null;
+        variant = pickVariant(probe.rotation, meta.variant, cookies) ?? probe.landing?.id ?? null;
       }
     }
     const now = new Date();

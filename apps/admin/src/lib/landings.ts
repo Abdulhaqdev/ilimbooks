@@ -135,6 +135,19 @@ export const TEMPLATES: { id: Template; label: string; hint: string; features: F
   { id: 'minimal', label: 'Minimal do‘kon', hint: 'Marketplace uslubi, pastdan forma', features: [...COMMON, 'chips'] },
 ];
 
+export const TEMPLATE_TONE: Record<string, string> = {
+  full: '#0f6b4f',
+  compact: '#16a06f',
+  story: '#e1306c',
+  flash: '#f5b301',
+  problem: '#10b981',
+  reviews: '#2563eb',
+  premium: '#c9a227',
+  kids: '#ff7a59',
+  bundle: '#0f766e',
+  minimal: '#7c3aed',
+};
+
 export function templateLabel(t: string) {
   return TEMPLATES.find((x) => x.id === t)?.label || t;
 }

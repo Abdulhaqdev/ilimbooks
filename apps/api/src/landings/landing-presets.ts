@@ -1,6 +1,7 @@
 import { DEFAULT_CONTENT, LandingContent, Template } from './landing-content';
 import { AMIRAM_CATALOG, amiramPreset } from './amiram-catalog';
 import { CatalogItem, SHOX_CATALOG } from './shox-catalog';
+import { ZIYOMARKET_CATALOG, type ZiyoItem } from './ziyomarket-catalog';
 
 export type Preset = {
   id: string;
@@ -21,7 +22,7 @@ export type Preset = {
   content: LandingContent;
 };
 
-const TRUST = ['🚚 Bepul yetkazish', '💵 Qo‘lga olib to‘lash', '✅ Sifat kafolati'];
+const TRUST = ['🚚 Yetkazib berish', '💵 Qo‘lga olib to‘lash', '✅ Sifat kafolati'];
 
 const BASE: LandingContent = {
   ...DEFAULT_CONTENT,
@@ -45,7 +46,7 @@ const BASE: LandingContent = {
   accent: '',
 };
 
-const FAQ_DELIVERY = { q: 'Yetkazib berish qancha vaqt oladi?', a: 'Toshkent bo‘ylab 1 kun, viloyatlarga 2–4 kun. Yetkazish bepul.' };
+const FAQ_DELIVERY = { q: 'Yetkazib berish qancha vaqt oladi?', a: 'Toshkent bo‘ylab 1 kun, viloyatlarga 2–4 kun.' };
 const FAQ_PAY = { q: 'To‘lov qanday amalga oshiriladi?', a: 'Oldindan to‘lov yo‘q. Mahsulotni qo‘lingizga olib, ko‘rib, keyin kuryerga naqd yoki karta orqali to‘laysiz.' };
 
 const img = (dir: string, n: number) => Array.from({ length: n }, (_, i) => `/t/${dir}/${i + 1}.webp`);
@@ -104,7 +105,7 @@ export const PRESETS: Preset[] = [
       title: 'KATTA SOYALI QUR’ON (24×35)',
       subtitle: 'Arab harflari ustidan yozib, Qur’on husnixatini uyda o‘rganing',
       images: [...img('klassik', 1), '/product/2.jpg', '/product/3.webp'],
-      marquee: '✦ KATTA SOYALI QUR’ON · 🔥 -33% AKSIYA · 🚚 BEPUL YETKAZISH · 💵 QO‘LGA OLIB TO‘LASH',
+      marquee: '✦ KATTA SOYALI QUR’ON · 🔥 -33% AKSIYA · 🚚 YETKAZIB BERISH · 💵 QO‘LGA OLIB TO‘LASH',
       hitBadge: '🔥 HIT',
       chips: ['🌙 Katta format', '✍️ Qalam sovg‘a', '💵 Qo‘lga olib to‘lash'],
       rating: '4.9',
@@ -121,7 +122,7 @@ export const PRESETS: Preset[] = [
         { icon: '👨‍👩‍👧', title: 'Butun oila uchun', text: 'Bolalar ham, kattalar ham birga o‘rganadi.' },
       ],
       seoTitle: 'Katta Soyali Qur’on 24×35 — aksiya narxida',
-      seoDescription: 'Soyali harflar ustidan yozib Qur’on husnixatini o‘rganing. Bepul yetkazish, qo‘lga olib to‘lash.',
+      seoDescription: 'Soyali harflar ustidan yozib Qur’on husnixatini o‘rganing. Qo‘lga olib to‘lash.',
       faq: [FAQ_DELIVERY, FAQ_PAY],
     },
   },
@@ -148,7 +149,7 @@ export const PRESETS: Preset[] = [
       priceNew: '99 000',
       urgency: 'Bugun buyurtma bering — aksiya narxi saqlanib qoladi',
       ctaText: 'Buyurtma berish',
-      trust: ['🚚 Bepul', '💵 Qo‘lga olib to‘lash', '✅ Kafolat'],
+      trust: ['🚚 Yetkazib berish', '💵 Qo‘lga olib to‘lash', '✅ Kafolat'],
       seoTitle: '5D Namoz Book — namozni oson o‘rganing',
       seoDescription: 'Namozni rasmlar bilan bosqichma-bosqich o‘rgatuvchi kitob. Aksiya: 99 000 so‘m.',
     },
@@ -199,7 +200,7 @@ export const PRESETS: Preset[] = [
       guaranteeText: 'Ruchkaga kafolat beriladi. Mahsulotni ko‘rib, keyin to‘laysiz.',
       accent: '#d4af37',
       seoTitle: 'Ruchkali Qur’oni Karim — ovozli tilovat, premium sovg‘a',
-      seoDescription: 'Sensorli ruchka bilan Qur’on tinglang. Sovg‘a qutisida. Bepul yetkazish.',
+      seoDescription: 'Sensorli ruchka bilan Qur’on tinglang. Sovg‘a qutisida.',
     },
   },
   {
@@ -247,7 +248,7 @@ export const PRESETS: Preset[] = [
       ],
       accent: '#ff7a59',
       seoTitle: '«Ilk joynamozim» — bolalar uchun ovozli joynamoz',
-      seoDescription: 'Farzandingizga namozni o‘yin orqali o‘rgating. 169 000 so‘m, bepul yetkazish.',
+      seoDescription: 'Farzandingizga namozni o‘yin orqali o‘rgating. 169 000 so‘m.',
     },
   },
   {
@@ -294,12 +295,31 @@ export const PRESETS: Preset[] = [
       ],
       faq: [FAQ_DELIVERY, FAQ_PAY],
       seoTitle: 'Tajvidli Qur’on + Suralar Mozaikasi — to‘plam narxida',
-      seoDescription: 'Qur’on o‘rganish to‘plami: 199 000 so‘m. Bonus bilan. Bepul yetkazish.',
+      seoDescription: 'Qur’on o‘rganish to‘plami: 199 000 so‘m. Bonus bilan.',
     },
   },
   ...SHOX_CATALOG.map(fromCatalog),
   ...AMIRAM_CATALOG.map(amiramPreset),
+  ...ZIYOMARKET_CATALOG.map(ziyomarketPreset),
 ];
+
+function ziyomarketPreset(c: ZiyoItem): Preset {
+  return {
+    id: `ziyo-${c.offerId}`,
+    name: TEMPLATE_NAME[c.template],
+    goal: c.content.subtitle,
+    product: c.name,
+    category: c.category,
+    source: 'ziyomarket.uz',
+    marketCode: 'ziyomarket',
+    sourceUrl: 'https://ziyomarket.uz/',
+    template: c.template,
+    tags: [`Ziyomarket #${c.offerId}`, c.category],
+    offerId: String(c.offerId),
+    payout: c.payout,
+    content: c.content,
+  };
+}
 
 export function findPreset(id: unknown) {
   return PRESETS.find((p) => p.id === id);

@@ -1,221 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import {
-  IconCheck,
-  IconExternal,
-  IconPlus,
-  IconRefresh,
-  IconTrash,
-  IconX,
-} from '../components/icons';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { IconCheck, IconExternal, IconPlus, IconRefresh, IconTrash } from '../components/icons';
+import { TemplateBadge } from '../components/TemplatePicker';
 import { Toggle, useConfirm, useToast } from '../components/ui';
 import { accountLabel, getAccount } from '../lib/account';
 import { api, formatNum } from '../lib/api';
-import { imgSrc, landingUrl, normSlug, templateLabel, type Landing } from '../lib/landings';
-import type { RotationRow } from '../lib/rotations';
-
-const slugify = (s: string) => normSlug(s.replace(/[‘’ʻʼ'`]/g, '')).replace(/^-|-$/g, '');
-
-function CreateModal({ onClose }: { onClose: () => void }) {
-  const nav = useNavigate();
-  const qc = useQueryClient();
-  const toast = useToast();
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [picked, setPicked] = useState<string[]>([]);
-  const [q, setQ] = useState('');
-  const [err, setErr] = useState('');
-
-  const lq = useQuery({ queryKey: ['landings'], queryFn: () => api<Landing[]>('/api/admin/landings') });
-  const list = useMemo(() => {
-    const rows = lq.data || [];
-    const needle = q.trim().toLowerCase();
-    return needle
-      ? rows.filter((l) => `${l.name} ${l.path}`.toLowerCase().includes(needle))
-      : rows;
-  }, [lq.data, q]);
-
-  const create = useMutation({
-    mutationFn: () =>
-      api<{ id: string }>('/api/admin/rotations', {
-        method: 'POST',
-        body: JSON.stringify({ name, slug, landingIds: picked }),
-      }),
-    onSuccess: (r) => {
-      qc.invalidateQueries({ queryKey: ['rotations'] });
-      toast.ok('Rotatsiya yaratildi');
-      nav(`/rotations/${r.id}`);
-    },
-    onError: (e) => setErr(e instanceof Error ? e.message : 'Xatolik'),
-  });
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    addEventListener('keydown', onKey);
-    return () => removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    setErr('');
-    if (!name.trim()) return setErr('Nom kiriting');
-    if (!slug) return setErr('URL manzilini kiriting');
-    if (picked.length < 2) return setErr('Kamida 2 ta landing tanlang');
-    create.mutate();
-  }
-
-  const pickedRows = useMemo(
-    () => picked.map((id) => (lq.data || []).find((l) => l.id === id)).filter(Boolean) as Landing[],
-    [picked, lq.data],
-  );
-
-  return (
-    <div className="a-modal-back" onClick={onClose}>
-      <form className="a-modal a-rot-modal" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
-        <div className="a-rot-head">
-          <div className="a-modal-h">
-            <h2>Yangi rotatsiya</h2>
-            <button className="a-icon-btn" type="button" onClick={onClose} aria-label="Yopish">
-              <IconX />
-            </button>
-          </div>
-          <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>
-            Bitta havola — ichidagi landinglar har bir yangi tashrifchiga navbat bilan ko‘rsatiladi.
-            Qaysi biri ko‘proq buyurtma beryaptini statistikada ko‘rasiz.
-          </p>
-        </div>
-
-        <div className="a-rot-body a-f">
-          <div className="a-grid-2">
-            <div>
-              <label className="a-lbl" htmlFor="rn">Nomi (faqat adminda)</label>
-              <input
-                id="rn"
-                className="a-in"
-                autoFocus
-                value={name}
-                placeholder="Masalan: Atirlar — A/B"
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (!slugTouched) setSlug(slugify(e.target.value).slice(0, 40));
-                }}
-              />
-            </div>
-            <div>
-              <label className="a-lbl" htmlFor="rs">URL manzil</label>
-              <div className="a-prefix">
-                <span>{landingUrl('/').replace(/^https?:\/\//, '')}</span>
-                <input
-                  id="rs"
-                  value={slug}
-                  placeholder="atir-test"
-                  onChange={(e) => {
-                    setSlugTouched(true);
-                    setSlug(normSlug(e.target.value));
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="a-pick-head">
-              <b>Landinglar · {picked.length} ta tanlandi</b>
-              {picked.length ? (
-                <button className="a-btn sm" type="button" onClick={() => setPicked([])}>
-                  Hammasini olib tashlash
-                </button>
-              ) : null}
-            </div>
-
-            {pickedRows.length ? (
-              <div className="a-chips">
-                {pickedRows.map((l, i) => (
-                  <span className="a-chip" key={l.id}>
-                    <b>{i + 1}</b>
-                    <span>{l.name}</span>
-                    <button
-                      type="button"
-                      aria-label="Olib tashlash"
-                      onClick={() => setPicked((p) => p.filter((x) => x !== l.id))}
-                    >
-                      <IconX size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className="a-note" style={{ margin: '0 0 10px' }}>
-                Kamida 2 ta landing tanlang — havola shular orasida navbat bilan aylanadi.
-              </div>
-            )}
-
-            <input
-              className="a-in"
-              value={q}
-              placeholder="Landing qidirish…"
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <div className="a-pick">
-              {lq.isLoading ? <p className="muted" style={{ padding: 12 }}>Yuklanmoqda…</p> : null}
-              {list.map((l) => {
-                const on = picked.includes(l.id);
-                return (
-                  <button
-                    type="button"
-                    key={l.id}
-                    className={on ? 'a-pick-row on' : 'a-pick-row'}
-                    aria-pressed={on}
-                    onClick={() =>
-                      setPicked((p) => (on ? p.filter((x) => x !== l.id) : [...p, l.id]))
-                    }
-                  >
-                    <span className="a-pick-box">{on ? <IconCheck size={13} /> : null}</span>
-                    <span className="a-pick-img">
-                      {l.content.images[0] ? <img src={imgSrc(l.content.images[0])} alt="" /> : null}
-                    </span>
-                    <span className="a-pick-t">
-                      <b>{l.name}</b>
-                      <small>
-                        {l.path} · {templateLabel(l.template)}
-                      </small>
-                    </span>
-                  </button>
-                );
-              })}
-              {!lq.isLoading && !list.length ? (
-                <p className="muted" style={{ padding: 12 }}>Landing topilmadi</p>
-              ) : null}
-            </div>
-          </div>
-
-        </div>
-
-        <div className="a-rot-foot">
-          {err ? <div className="a-err" style={{ margin: 0, flex: '1 1 100%' }}>{err}</div> : null}
-          <span className="muted" style={{ fontSize: 12.5, marginRight: 'auto' }}>
-            {picked.length < 2 ? `Yana ${2 - picked.length} ta landing kerak` : `${picked.length} ta landing navbatda`}
-          </span>
-          <button className="a-btn" type="button" onClick={onClose}>
-            Bekor qilish
-          </button>
-          <button className="a-btn p" type="submit" disabled={create.isPending || picked.length < 2}>
-            {create.isPending ? 'Yaratilmoqda…' : 'Yaratish'}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
+import { imgSrc, landingUrl, templateLabel } from '../lib/landings';
+import { type RotationRow } from '../lib/rotations';
 
 export default function Rotations() {
   const qc = useQueryClient();
   const account = getAccount();
   const confirm = useConfirm();
   const toast = useToast();
-  const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState('');
 
   const q = useQuery({ queryKey: ['rotations'], queryFn: () => api<RotationRow[]>('/api/admin/rotations') });
@@ -278,13 +76,13 @@ export default function Rotations() {
         <div style={{ flex: '1 1 420px', minWidth: 0 }}>
           <h1 className="a-h1">Rotatsiya · {accountLabel(account)}</h1>
           <p className="a-sub" style={{ marginBottom: 0 }}>
-            Bitta havola — ichida bir nechta landing. Har yangi tashrifchiga navbatdagi landing
+            Bitta havola — ichida bir nechta shablon. Havola ochilganda navbatdagi variant
             ko‘rsatiladi, qaysi biri ko‘proq sotayotgani statistikada ko‘rinadi.
           </p>
         </div>
-        <button className="a-btn p" type="button" onClick={() => setCreating(true)}>
+        <Link className="a-btn p" to="/rotations/new">
           <IconPlus size={16} /> Yangi rotatsiya
-        </button>
+        </Link>
       </div>
 
       {q.isLoading ? <p className="muted">Yuklanmoqda…</p> : null}
@@ -297,9 +95,9 @@ export default function Rotations() {
             Reklamaga bitta havola qo‘yib, uning ortida bir nechta landingni sinab ko‘rish uchun
             rotatsiya yarating. Qaysi landing ko‘proq buyurtma keltirayotgani aniq ko‘rinadi.
           </p>
-          <button className="a-btn p" type="button" onClick={() => setCreating(true)}>
+          <Link className="a-btn p" to="/rotations/new">
             <IconPlus size={16} /> Yangi rotatsiya
-          </button>
+          </Link>
         </div>
       ) : null}
 
@@ -339,6 +137,22 @@ export default function Rotations() {
               </b>
             </div>
 
+            <div className="a-rtpls">
+              {r.templates.map((t) => (
+                <TemplateBadge key={t} t={t} label={templateLabel(t)} />
+              ))}
+              <span className="a-pill tag">{r.mode === 'sticky' ? 'Bir odamga bitta' : 'Har ochilishda almashadi'}</span>
+            </div>
+            {r.live < 2 ? (
+              <div className="a-note warn" style={{ margin: 0 }}>
+                Faqat {r.live} ta variant ko‘rsatilyapti — havola almashmaydi.
+              </div>
+            ) : r.templates.length === 1 ? (
+              <div className="a-note warn" style={{ margin: 0 }}>
+                Hamma variant bitta shablonda — dizayn almashmaydi.
+              </div>
+            ) : null}
+
             <div className="a-lstats">
               <div>
                 <b className="c-blue">{formatNum(r.stats7d.clicks)}</b>
@@ -371,7 +185,6 @@ export default function Rotations() {
         ))}
       </div>
 
-      {creating ? <CreateModal onClose={() => setCreating(false)} /> : null}
     </div>
   );
 }

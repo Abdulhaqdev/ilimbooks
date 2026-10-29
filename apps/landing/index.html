@@ -13,7 +13,32 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet" />
+    <!-- Landing ma'lumoti JS bundle bilan parallel so'raladi; birinchi rasm darhol yuklana boshlaydi -->
+    <script>
+    (function () {
+      try {
+        if (/[?&]preview=1(&|$)/.test(location.search)) return;
+        var p = location.pathname.replace(/\/+$/, '') || '/';
+        var data = fetch('/api/public/landing?path=' + encodeURIComponent(p)).then(function (r) {
+          return r.ok ? r.json() : null;
+        });
+        window.__ibLanding = { path: p, data: data };
+        data.then(function (d) {
+          var img = d && d.content && d.content.images && d.content.images[0];
+          if (!img) return;
+          var l = document.createElement('link');
+          l.rel = 'preload';
+          l.as = 'image';
+          l.href = img;
+          l.setAttribute('fetchpriority', 'high');
+          document.head.appendChild(l);
+        }).catch(function () {});
+      } catch (e) {}
+    })();
+    </script>
+    <!-- Shrift sahifani bloklamaydi: avval tizim shrifti, yuklangach almashadi -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet" /></noscript>
     <!-- Meta Pixel Code (init + PageView src/pixel.ts — Pixel ID admin paneldan) -->
     <script data-cfasync="false">
     !function(f,b,e,v,n,t,s)

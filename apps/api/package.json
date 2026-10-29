@@ -22,6 +22,7 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:seed:amiram": "tsx prisma/seed-amiram.ts",
+    "prisma:seed:ziyomarket": "tsx prisma/seed-ziyomarket.ts",
     "prisma:seed:shox": "tsx prisma/seed-shox.ts"
   },
   "prisma": {
