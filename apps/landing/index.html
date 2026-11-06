@@ -51,9 +51,61 @@
     'https://connect.facebook.net/en_US/fbevents.js');
     </script>
     <!-- End Meta Pixel Code -->
+    <!-- Skelet: HTML kelishi bilan darhol chiziladi, React yuklanganda o'zi almashadi.
+         Instagram ichki brauzerida foydalanuvchi qora ekran o'rniga sahifa shaklini ko'radi. -->
+    <style>
+      .ib-skel {
+        min-height: 100vh;
+        background:
+          radial-gradient(900px 500px at 15% -5%, rgba(22,160,111,.28), transparent 60%),
+          radial-gradient(800px 500px at 100% 12%, rgba(212,175,55,.14), transparent 55%),
+          linear-gradient(180deg, #0b3a2c 0, #082a20 55%, #061f17 100%);
+      }
+      .ib-skel-wrap { width: 100%; max-width: 480px; margin: 0 auto; padding: 4px 16px 36px; }
+      .ib-skel-hd { display: flex; align-items: center; justify-content: space-between; padding: 12px 2px 14px; }
+      .ib-sk {
+        background: linear-gradient(90deg, rgba(255,255,255,.055) 0, rgba(255,255,255,.13) 40%, rgba(255,255,255,.055) 80%);
+        background-size: 600px 100%;
+        animation: ib-sk 1.5s linear infinite;
+        border-radius: 10px;
+      }
+      @keyframes ib-sk { 0% { background-position: -200px 0; } 100% { background-position: 460px 0; } }
+      @media (prefers-reduced-motion: reduce) { .ib-sk { animation: none; } }
+      .ib-skel-brand { width: 148px; height: 22px; }
+      .ib-skel-chip { width: 74px; height: 28px; border-radius: 999px; }
+      .ib-skel-gal {
+        aspect-ratio: 1 / 1; max-height: 50vh; border-radius: 22px;
+        border: 1px solid rgba(212,175,55,.25); margin-bottom: 18px;
+      }
+      .ib-skel-chips { display: flex; gap: 8px; margin-bottom: 14px; }
+      .ib-skel-chips span { height: 30px; border-radius: 999px; flex: 0 0 auto; }
+      .ib-skel-chips span:nth-child(1) { width: 92px; }
+      .ib-skel-chips span:nth-child(2) { width: 118px; }
+      .ib-skel-chips span:nth-child(3) { width: 76px; }
+      .ib-skel-title { height: 30px; margin-bottom: 9px; }
+      .ib-skel-title.s { width: 62%; margin-bottom: 16px; }
+      .ib-skel-sub { height: 17px; width: 85%; margin-bottom: 22px; }
+      .ib-skel-price { height: 44px; width: 60%; border-radius: 14px; margin-bottom: 20px; }
+      .ib-skel-cta {
+        height: 56px; border-radius: 16px;
+        background: linear-gradient(90deg, rgba(212,175,55,.30) 0, rgba(243,208,106,.50) 40%, rgba(212,175,55,.30) 80%);
+        background-size: 600px 100%;
+        animation: ib-sk 1.5s linear infinite;
+      }
+      @media (prefers-reduced-motion: reduce) { .ib-skel-cta { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="ib-skel" aria-hidden="true"><div class="ib-skel-wrap">
+      <div class="ib-skel-hd"><div class="ib-sk ib-skel-brand"></div><div class="ib-sk ib-skel-chip"></div></div>
+      <div class="ib-sk ib-skel-gal"></div>
+      <div class="ib-skel-chips"><span class="ib-sk"></span><span class="ib-sk"></span><span class="ib-sk"></span></div>
+      <div class="ib-sk ib-skel-title"></div>
+      <div class="ib-sk ib-skel-title s"></div>
+      <div class="ib-sk ib-skel-sub"></div>
+      <div class="ib-sk ib-skel-price"></div>
+      <div class="ib-skel-cta"></div>
+    </div></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
