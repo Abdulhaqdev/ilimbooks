@@ -42,6 +42,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* reveal */
 [data-reveal] { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
 [data-reveal].in { opacity: 1; transform: none; }
+/* Birinchi ekrandagi bloklar — darhol, animatsiyasiz (bo'sh ekran ko'rinmasin) */
+[data-reveal].now { opacity: 1; transform: none; transition: none; }
 @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; transform: none; transition: none; } }
 
 /* ── Marquee ── */

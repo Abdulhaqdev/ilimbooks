@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   discountPct,
   formatPhone,
@@ -7,11 +7,23 @@ import {
   type TemplateProps,
 } from '../shared';
 
+/**
+ * Pastdagi bloklar scroll bilan chiroyli chiqadi, LEKIN birinchi ekrandagilar
+ * darhol va animatsiyasiz ko'rinadi. useLayoutEffect — brauzer chizishdan OLDIN
+ * ishlaydi, shuning uchun sarlavha/rasm hech qachon bo'sh ekran bo'lib turmaydi.
+ */
 function useReveal(deps: unknown) {
-  useEffect(() => {
-    const els = Array.from(document.querySelectorAll('[data-reveal]:not(.in)'));
+  useLayoutEffect(() => {
+    const els = Array.from(document.querySelectorAll('[data-reveal]:not(.in):not(.now)'));
+    const vh = window.innerHeight || 0;
+    const below: Element[] = [];
+    for (const e of els) {
+      if (e.getBoundingClientRect().top < vh) e.classList.add('now');
+      else below.push(e);
+    }
+    if (!below.length) return;
     if (!('IntersectionObserver' in window)) {
-      els.forEach((e) => e.classList.add('in'));
+      below.forEach((e) => e.classList.add('in'));
       return;
     }
     const io = new IntersectionObserver(
@@ -20,7 +32,7 @@ function useReveal(deps: unknown) {
       }),
       { threshold: 0.12 },
     );
-    els.forEach((e) => io.observe(e));
+    below.forEach((e) => io.observe(e));
     return () => io.disconnect();
   }, [deps]);
 }
