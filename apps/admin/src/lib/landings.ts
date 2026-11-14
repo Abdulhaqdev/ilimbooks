@@ -179,9 +179,62 @@ export function normSlug(raw: string) {
     .slice(0, 60);
 }
 
+/** Landingda rasm telefon ekranidan kengroq chiqmaydi — retina uchun shu yetadi. */
+const MAX_SIDE = 1440;
+const WEBP_QUALITY = 0.8;
+/** Shundan kichik va o'lchami me'yorda bo'lgan webp'ga tegilmaydi. */
+const SMALL_ENOUGH = 250 * 1024;
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+/**
+ * Rasmni yuklashdan oldin brauzerning o'zida kichraytirib WebP'ga o'giradi.
+ * Telefondan olingan 3–5 MB'li jpg/png odatda 100–250 KB bo'lib qoladi.
+ * GIF (animatsiya bo'lishi mumkin), video va boshqa fayllar o'zgarmaydi.
+ * Natija asl fayldan kattaroq chiqsa yoki biror narsa ishlamasa — asl fayl yuboriladi.
+ */
+export async function compressImage(file: File): Promise<File> {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
+  let bmp: ImageBitmap;
+  try {
+    bmp = await createImageBitmap(file);
+  } catch {
+    return file;
+  }
+  try {
+    const scale = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height));
+    if (file.type === 'image/webp' && scale === 1 && file.size <= SMALL_ENOUGH) return file;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+
+    let blob = await canvasToBlob(canvas, 'image/webp', WEBP_QUALITY);
+    // Eski Safari webp yozolmaydi — o'rniga png qaytaradi. Shaffof PNG'ni
+    // jpeg'ga aylantirib bo'lmaydi (fon qorayadi), qolganlari jpeg bo'ladi.
+    if (!blob || blob.type !== 'image/webp') {
+      if (file.type === 'image/png') return file;
+      blob = await canvasToBlob(canvas, 'image/jpeg', 0.82);
+    }
+    if (!blob || blob.size >= file.size) return file;
+
+    const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
+    const name = file.name.replace(/\.[^.]+$/, '') + '.' + ext;
+    return new File([blob], name, { type: blob.type });
+  } finally {
+    bmp.close();
+  }
+}
+
 export async function uploadImage(file: File): Promise<string> {
   const fd = new FormData();
-  fd.append('file', file);
+  fd.append('file', await compressImage(file));
   const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, credentials: 'include' });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || (res.status === 413 ? 'Fayl juda katta' : 'Fayl yuklanmadi'));
